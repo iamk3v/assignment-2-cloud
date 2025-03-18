@@ -1,6 +1,8 @@
 package assignment_2
 
 import (
+	"assignment-2/config"
+	"assignment-2/handlers"
 	"log"
 	"net/http"
 	"os"
@@ -12,7 +14,10 @@ func main() {
 	router := http.NewServeMux()
 
 	// Routes
-	router.HandleFunc()
+	router.HandleFunc(config.START_URL+"/registrations/", handlers.RegistrationHandler)
+	router.HandleFunc(config.START_URL+"/dashboards/", handlers.DashboardHandler)
+	router.HandleFunc(config.START_URL+"/notifications/", handlers.NotificationHandler)
+	router.HandleFunc(config.START_URL+"/status/", handlers.StatusHandler)
 
 	// Define port
 	PORT := "8080"
