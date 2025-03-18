@@ -2,10 +2,10 @@ package handlers
 
 import "net/http"
 
-func StatusHandler(w http.ResponseWriter, r *http.Request) {
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		handleStatusGetRequest(w, r)
+		handleDashGetRequest(w, r)
 	default:
 		http.Error(w, "REST method '"+r.Method+"' not supported. "+
 			"Currently only '"+http.MethodGet+"' is supported.", http.StatusNotImplemented)
@@ -13,6 +13,6 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
+func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 
 }
