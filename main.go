@@ -1,4 +1,4 @@
-package assignment_2
+package main
 
 import (
 	"assignment-2/config"
