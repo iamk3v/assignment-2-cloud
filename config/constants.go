@@ -12,8 +12,9 @@ const (
 // API version
 const VERSION = "v1"
 
-//used for status testing
+// used for status testing
 const Testcountry = "no"
+const Testcurrency = "nok"
 
 // Error messages
 const (
