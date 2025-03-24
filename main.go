@@ -3,6 +3,7 @@ package main
 import (
 	"assignment-2/config"
 	"assignment-2/handlers"
+	"assignment-2/utils"
 	"context"
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
@@ -12,6 +13,10 @@ import (
 )
 
 func main() {
+
+	//start uptime timer
+	utils.StartTime()
+	log.Println("Uptime timer started:", utils.Gettime())
 
 	// Instantiate global Ctx variable
 	config.Ctx = context.Background()
