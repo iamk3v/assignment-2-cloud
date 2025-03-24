@@ -6,11 +6,16 @@ const START_URL = "/dashboard/" + VERSION
 const (
 	RESTCOUNTRIES_ROOT = "http://129.241.150.113:8080/v3.1/"
 	CURRENCY_ROOT      = "http://129.241.150.113:9090/currency/"
-	OPENMETEO_ROOT     = "https://api.open-meteo.com/v1/forecast/"
+	OPENMETEO_ROOT     = "https://api.open-meteo.com/v1/forecast"
 )
 
 // API version
 const VERSION = "v1"
+
+// used for status testing
+const Testcountry = "no"
+const Testcurrency = "nok"
+const Testweather = "?latitude=52.52&longitude=13.41&hourly=temperature_2m"
 
 // Error messages
 const (
