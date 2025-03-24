@@ -1,12 +1,12 @@
 package utils
 
 type Statusresponse struct {
-	countriesAPI         int `firestore:"countriesAPI" json:"countriesAPI"`
-	currencyAPI          int `firestore:"currencyAPI" json:"currencyAPI"`
-	openmeteoAPI         int `firestore:"openmeteoAPI" json:"openmeteoAPI"`
-	notificationresponse int `firestore:"notificationresponse" json:"notificationresponse"`
-	dashboardresponse    int `firestore:"dashboardresponse" json:"dashboardresponse"`
-	webhookssum          int `firestore:"webhookssum" json:"webhookssum"`
-	version              int `firestore:"version" json:"version"`
-	uptime               int `firestore:"uptime" json:"uptime"`
+	CountriesAPI         int `firestore:"countriesAPI" json:"countriesAPI"`
+	CurrencyAPI          int `firestore:"currencyAPI" json:"currencyAPI"`
+	OpenmeteoAPI         int `firestore:"openmeteoAPI" json:"openmeteoAPI"`
+	Notificationresponse int `firestore:"notificationresponse" json:"notificationresponse"`
+	Dashboardresponse    int `firestore:"dashboardresponse" json:"dashboardresponse"`
+	Webhookssum          int `firestore:"webhookssum" json:"webhookssum"`
+	Version              int `firestore:"version" json:"version"`
+	Uptime               int `firestore:"uptime" json:"uptime"`
 }
