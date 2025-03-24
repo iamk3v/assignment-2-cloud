@@ -33,6 +33,7 @@ func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 		CurrencyAPI:  currencyAPIStatus,
 		OpenmeteoAPI: openmeteoAPIStatus,
 		//Notificationresponse:,
+		//Dashboardresponse,
 		//Webhookssum:,
 		Version: config.VERSION,
 		Uptime:  utils.Gettime(),
