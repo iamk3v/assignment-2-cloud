@@ -12,6 +12,9 @@ const (
 // API version
 const VERSION = "v1"
 
+//used for status testing
+const Testcountry = "no"
+
 // Error messages
 const (
 	ERR_NOT_FOUND             = "Not found"
