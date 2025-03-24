@@ -33,7 +33,6 @@ func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(trimmedPath, "/")
 
 	// If an ID was provided, get one
-	log.Println(len(parts))
 	if len(parts) >= 1 && parts[0] != "" {
 		id := parts[0]
 		rawContent, err := database.GetOneRegistration(id, w, r)
