@@ -38,6 +38,13 @@ func main() {
 		return
 	}
 
+	defer func() {
+		errClose := config.Client.Close()
+		if errClose != nil {
+			log.Fatal("Closing of the Firebase client failed. Error: " + errClose.Error())
+		}
+	}()
+
 	// Create a new router
 	router := http.NewServeMux()
 

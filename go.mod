@@ -3,6 +3,7 @@ module assignment-2
 go 1.24.1
 
 require (
+	cloud.google.com/go/firestore v1.18.0
 	firebase.google.com/go v3.13.0+incompatible
 	google.golang.org/api v0.227.0
 )
@@ -13,7 +14,6 @@ require (
 	cloud.google.com/go/auth v0.15.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
-	cloud.google.com/go/firestore v1.18.0 // indirect
 	cloud.google.com/go/iam v1.4.1 // indirect
 	cloud.google.com/go/longrunning v0.6.5 // indirect
 	cloud.google.com/go/monitoring v1.24.0 // indirect
