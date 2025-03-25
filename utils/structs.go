@@ -29,3 +29,18 @@ type Features struct {
 	Area             bool     `firestore:"area" json:"area"`
 	TargetCurrencies []string `firestore:"targetCurrencies" json:"targetCurrencies"`
 }
+
+type Webhook struct {
+	ID      string `json:"id"`
+	URL     string `json:"url"`
+	Country string `json:"country,omitempty"` // if empty, applies to all countries
+	Event   string `json:"event"`             // REGISTER, CHANGE, DELETE, INVOKE, ...
+}
+
+// WebhookInvocation is the payload we POST to the subscribed URL
+type WebhookInvocation struct {
+	ID      string `json:"id"`
+	Country string `json:"country,omitempty"`
+	Event   string `json:"event"`
+	Time    string `json:"time"`
+}
