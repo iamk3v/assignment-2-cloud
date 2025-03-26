@@ -3,11 +3,14 @@ package handlers
 import (
 	"assignment-2/config"
 	"assignment-2/database"
+	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,9 +36,9 @@ func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(trimmedPath, "/")
 
 	// If an ID was provided, get one
-	if len(parts) >= 1 && parts[0] != "" {
+	if trimmedPath != "" || len(parts) >= 1 && parts[0] != "" {
 		id := parts[0]
-		rawContent, err := database.GetOneRegistration(id, w, r)
+		rawContent, err := database.GetOneRegistration(id)
 		if err != nil {
 			log.Println("Error retrieving registration with id " + id + ": " + err.Error())
 			http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
@@ -47,6 +50,7 @@ func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error marshalling payload: " + err.Error())
 			http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
+			return
 		}
 
 		// Send response
@@ -55,10 +59,11 @@ func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error while writing response body: " + err.Error())
 			http.Error(w, "There was am error while writing response body", http.StatusInternalServerError)
+			return
 		}
 	} else {
 		// If no ID was provided, get all
-		rawContent, err := database.GetAllRegistrations(w, r)
+		rawContent, err := database.GetAllRegistrations()
 		if err != nil {
 			log.Println("Error retrieving all dashboards: " + err.Error())
 			http.Error(w, "There was an error retrieving all dashboards", http.StatusInternalServerError)
@@ -70,6 +75,7 @@ func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error marshalling payload: " + err.Error())
 			http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
+			return
 		}
 
 		// Send response
@@ -78,6 +84,7 @@ func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error while writing response body: " + err.Error())
 			http.Error(w, "There was am error while writing response body", http.StatusInternalServerError)
+			return
 		}
 	}
 
@@ -85,12 +92,74 @@ func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 
-}
+	// Read the body
+	content, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Error reading request body: " + err.Error())
+		http.Error(w, "Reading payload failed.", http.StatusInternalServerError)
+		return
+	}
 
-func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 
+	if len(content) == 0 {
+		http.Error(w, "Your payload appears to be empty.", http.StatusBadRequest)
+		return
+	}
+
+	dashboard := utils.Dashboard{}
+	// Decode JSON into the dashboard struct
+	err = json.Unmarshal(content, &dashboard)
+	if err != nil {
+		log.Println("Error unmarshalling payload: " + err.Error())
+		http.Error(w, "There was an error unmarshalling payload", http.StatusInternalServerError)
+		return
+	}
+	dashboard.LastChange = time.Now()
+
+	// Add the dashboard to DB
+	id, err := database.AddRegistration(dashboard)
+	if err != nil {
+		log.Println("Error adding dashboard to database: " + err.Error())
+		http.Error(w, "There was an error adding dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	// Create the response struct
+	resp := map[string]string{
+		"id":         id,
+		"lastChange": dashboard.LastChange.Format(time.RFC3339),
+	}
+
+	// Response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		log.Println("Error encoding AddRegistration response: ", err)
+	}
 }
 
 func handleRegPutRequest(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request) {
+	basePath := config.START_URL + "/registrations/"
+	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
+	parts := strings.Split(trimmedPath, "/")
+
+	// If an ID was not provided
+	if trimmedPath == "" || len(parts) < 1 || parts[0] == "" {
+		http.Error(w, "An ID is required to delete a specific dashboard registration", http.StatusBadRequest)
+		return
+	}
+
+	err := database.DeleteRegistration(parts[0])
+	if err != nil {
+		http.Error(w, "There was an error trying to delete that dashboard..", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

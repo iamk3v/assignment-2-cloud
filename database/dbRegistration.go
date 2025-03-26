@@ -3,7 +3,6 @@ package database
 import (
 	"assignment-2/config"
 	"assignment-2/utils"
-	"cloud.google.com/go/firestore"
 	"encoding/json"
 	"errors"
 	"google.golang.org/api/iterator"
@@ -16,55 +15,35 @@ const collection = "dashboards"
 
 /*
 Addregistration reads JSON from the request body, stores it in firebase and writes a JSON response (ID + lastchange)
- */
-func AddRegistration(w http.ResponseWriter, r *http.Request) {
-	var dash utils.Dashboard
-	// Parse JSON body into Dashboard struct
-	if err := json.NewDecoder(r.Body).Decode(&dash); err != nil {
-		log.Println("Error decoding JSON body: "err)
-		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-	// Update timestamp
-	dash.LastChange = time.Now()
+*/
+func AddRegistration(dash utils.Dashboard) (string, error) {
 	// Adding the document to firestore
 	ref, _, err := config.Client.Collection(collection).Add(config.Ctx, dash)
 	if err != nil {
-		log.Println("Error adding document to Firestore: ", err)
-		http.Error(w, "Could not add registration: "+err.Error(), http.StatusInternalServerError)
-		return
+		log.Println("Error adding document to Firestore: " + err.Error())
+		return "", err
 	}
-	// Response Object - ID and LastChange
-	resp := map[string]string{
-		"id": ref.ID,
-		"lastChange": dash.LastChange.Format(time.RFC3339),
-	}
-	// Response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		log.Println("Error encoding AddRegistration response: ", err)
-	}
+	// If nothing went wrong
+	return ref.ID, nil
 }
 
 /*
 DeleteRegistration Deletes a specific registration in Firestore by ID.
- */
-func DeleteRegistration(id string, w http.ResponseWriter, r *http.Request) {
+*/
+func DeleteRegistration(id string) error {
 	_, err := config.Client.Collection(collection).Doc(id).Delete(config.Ctx)
 	if err != nil {
-		log.Println("Error deleting document with id: ", id,"->" ,err)
-		http.Error(w, "Could not delete registration: "+err.Error(), http.StatusInternalServerError)
-		return
+		log.Println("Error deleting document with id " + id + ": " + err.Error())
+		return err
 	}
-	// Return status to indicate successful deletion
-	w.WriteHeader(http.StatusNoContent)
+
+	// Return nil as there was no error
+	return nil
 }
 
 /*
 UpdateRegistration replaces an existing registration document with the JSON from the request body
- */
+*/
 func UpdateRegistration(id string, w http.ResponseWriter, r *http.Request) {
 	var dash utils.Dashboard
 
@@ -81,7 +60,7 @@ func UpdateRegistration(id string, w http.ResponseWriter, r *http.Request) {
 	// Overwrite the document
 	_, err := config.Client.Collection(collection).Doc(id).Set(config.Ctx, dash)
 	if err != nil {
-		log.Println("Error updating document with id: ", id, "->" ,err)
+		log.Println("Error updating document with id: ", id, "->", err)
 		http.Error(w, "Could not update registration: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -90,7 +69,7 @@ func UpdateRegistration(id string, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetOneRegistration(id string, w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+func GetOneRegistration(id string) (map[string]interface{}, error) {
 	// Find the document with specified id
 	res := config.Client.Collection(collection).Doc(id)
 
@@ -99,14 +78,13 @@ func GetOneRegistration(id string, w http.ResponseWriter, r *http.Request) (map[
 
 	if err != nil {
 		log.Println("Error extracting body of returned document of dashboard " + id + ": " + err.Error())
-		http.Error(w, "There was an error getting the document with id "+id, http.StatusInternalServerError)
 		return nil, err
 	}
 
 	return doc.Data(), nil
 }
 
-func GetAllRegistrations(w http.ResponseWriter, r *http.Request) ([]map[string]interface{}, error) {
+func GetAllRegistrations() ([]map[string]interface{}, error) {
 	// Iterator through all documents
 	iter := config.Client.Collection(collection).Documents(config.Ctx)
 	var allDocs []map[string]interface{}
