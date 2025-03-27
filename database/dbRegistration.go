@@ -3,12 +3,9 @@ package database
 import (
 	"assignment-2/config"
 	"assignment-2/utils"
-	"encoding/json"
 	"errors"
 	"google.golang.org/api/iterator"
 	"log"
-	"net/http"
-	"time"
 )
 
 const collection = "dashboards"
@@ -44,32 +41,18 @@ func DeleteRegistration(id string) error {
 /*
 UpdateRegistration replaces an existing registration document with the JSON from the request body
 */
-func UpdateRegistration(id string, w http.ResponseWriter, r *http.Request) {
-	var dash utils.Dashboard
-
-	if err := json.NewDecoder(r.Body).Decode(&dash); err != nil {
-		log.Println("Error decoding JSON body for update: ", err)
-		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	// Update timestamp
-	dash.LastChange = time.Now()
+func UpdateRegistration(id string, dash utils.Dashboard) error {
 
 	// Overwrite the document
 	_, err := config.Client.Collection(collection).Doc(id).Set(config.Ctx, dash)
 	if err != nil {
-		log.Println("Error updating document with id: ", id, "->", err)
-		http.Error(w, "Could not update registration: "+err.Error(), http.StatusInternalServerError)
-		return
+		log.Println("Error updating document with id: " + id + ": " + err.Error())
+		return err
 	}
-	// Return status code to indicate success
-	w.WriteHeader(http.StatusNoContent)
-
+	return nil
 }
 
-func GetOneRegistration(id string) (map[string]interface{}, error) {
+func GetOneRegistration(id string) (utils.Dashboard, error) {
 	// Find the document with specified id
 	res := config.Client.Collection(collection).Doc(id)
 
@@ -78,16 +61,25 @@ func GetOneRegistration(id string) (map[string]interface{}, error) {
 
 	if err != nil {
 		log.Println("Error extracting body of returned document of dashboard " + id + ": " + err.Error())
-		return nil, err
+		return utils.Dashboard{}, err
 	}
 
-	return doc.Data(), nil
+	// Convert the firebase document into a dashboard struct
+	var dashboard utils.Dashboard
+	err = doc.DataTo(&dashboard)
+	if err != nil {
+		return utils.Dashboard{}, err
+	}
+
+	dashboard.Id = doc.Ref.ID
+
+	return dashboard, nil
 }
 
-func GetAllRegistrations() ([]map[string]interface{}, error) {
+func GetAllRegistrations() ([]utils.Dashboard, error) {
 	// Iterator through all documents
 	iter := config.Client.Collection(collection).Documents(config.Ctx)
-	var allDocs []map[string]interface{}
+	var allDashboards []utils.Dashboard
 
 	for {
 		doc, err := iter.Next()
@@ -99,10 +91,18 @@ func GetAllRegistrations() ([]map[string]interface{}, error) {
 			return nil, err
 		}
 
+		// Convert the firebase document into a dashboard struct
+		var dashboard utils.Dashboard
+		err = doc.DataTo(&dashboard)
+		if err != nil {
+			return nil, err
+		}
+
+		dashboard.Id = doc.Ref.ID
 		// Append the document to list
-		allDocs = append(allDocs, doc.Data())
+		allDashboards = append(allDashboards, dashboard)
 	}
 
 	// Return all documents
-	return allDocs, nil
+	return allDashboards, nil
 }
