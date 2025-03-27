@@ -14,79 +14,92 @@ import (
 )
 
 func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		handleRegGetRequest(w, r)
-	case http.MethodPost:
-		handleRegPostRequest(w, r)
-	case http.MethodDelete:
-		handleRegDeleteRequest(w, r)
-	case http.MethodPut:
-		handleRegPutRequest(w, r)
-	default:
-		http.Error(w, "REST method '"+r.Method+"' not supported. "+
-			"Currently only '"+http.MethodGet+"' is supported.", http.StatusNotImplemented)
-		return
-	}
-}
-
-func handleRegGetRequest(w http.ResponseWriter, r *http.Request) {
 	basePath := config.START_URL + "/registrations/"
 	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
 	parts := strings.Split(trimmedPath, "/")
 	id := parts[0]
 
-	// If an ID was provided, get one
 	if trimmedPath != "" || len(parts) >= 1 && id != "" {
-		id := id
-		rawContent, err := database.GetOneRegistration(id)
-		if err != nil {
-			log.Println("Error retrieving registration with id " + id + ": " + err.Error())
-			http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
-			return
-		}
-
-		// Encode response
-		content, err := json.Marshal(rawContent)
-		if err != nil {
-			log.Println("Error marshalling payload: " + err.Error())
-			http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
-			return
-		}
-
-		// Send response
-		w.Header().Set("Content-Type", "application/json")
-		_, err = fmt.Fprintln(w, string(content))
-		if err != nil {
-			log.Println("Error while writing response body: " + err.Error())
-			http.Error(w, "There was am error while writing response body", http.StatusInternalServerError)
+		// ID provided
+		switch r.Method {
+		case http.MethodGet:
+			handleRegGetOneRequest(w, r, id)
+		case http.MethodDelete:
+			handleRegDeleteRequest(w, r, id)
+		case http.MethodPut:
+			handleRegPutRequest(w, r, id)
+		default:
+			http.Error(w,
+				fmt.Sprintf("Method %s not supported on /notifications/{id}", r.Method),
+				http.StatusMethodNotAllowed)
 			return
 		}
 	} else {
-		// If no ID was provided, get all
-		rawContent, err := database.GetAllRegistrations()
-		if err != nil {
-			log.Println("Error retrieving all dashboards: " + err.Error())
-			http.Error(w, "There was an error retrieving all dashboards", http.StatusInternalServerError)
+		// No ID provided
+		switch r.Method {
+		case http.MethodGet:
+			handleRegGetAllRequest(w, r)
+		case http.MethodPost:
+			handleRegPostRequest(w, r)
+		default:
+			http.Error(w,
+				fmt.Sprintf("Method %s not supported on /notifications/", r.Method),
+				http.StatusMethodNotAllowed)
 			return
 		}
+	}
+}
 
-		// Encode response
-		content, err := json.Marshal(rawContent)
-		if err != nil {
-			log.Println("Error marshalling payload: " + err.Error())
-			http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
-			return
-		}
+func handleRegGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
+	rawContent, err := database.GetOneRegistration(id)
+	if err != nil {
+		log.Println("Error retrieving registration with id " + id + ": " + err.Error())
+		http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
+		return
+	}
 
-		// Send response
-		w.Header().Set("Content-Type", "application/json")
-		_, err = fmt.Fprintln(w, string(content))
-		if err != nil {
-			log.Println("Error while writing response body: " + err.Error())
-			http.Error(w, "There was am error while writing response body", http.StatusInternalServerError)
-			return
-		}
+	// Encode response
+	content, err := json.Marshal(rawContent)
+	if err != nil {
+		log.Println("Error marshalling payload: " + err.Error())
+		http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	_, err = fmt.Fprintln(w, string(content))
+	if err != nil {
+		log.Println("Error while writing response body: " + err.Error())
+		http.Error(w, "There was am error while writing response body", http.StatusInternalServerError)
+		return
+	}
+}
+
+func handleRegGetAllRequest(w http.ResponseWriter, r *http.Request) {
+	// If no ID was provided, get all
+	rawContent, err := database.GetAllRegistrations()
+	if err != nil {
+		log.Println("Error retrieving all dashboards: " + err.Error())
+		http.Error(w, "There was an error retrieving all dashboards", http.StatusInternalServerError)
+		return
+	}
+
+	// Encode response
+	content, err := json.Marshal(rawContent)
+	if err != nil {
+		log.Println("Error marshalling payload: " + err.Error())
+		http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	_, err = fmt.Fprintln(w, string(content))
+	if err != nil {
+		log.Println("Error while writing response body: " + err.Error())
+		http.Error(w, "There was am error while writing response body", http.StatusInternalServerError)
+		return
 	}
 
 }
@@ -141,14 +154,9 @@ func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleRegPutRequest(w http.ResponseWriter, r *http.Request) {
-	basePath := config.START_URL + "/registrations/"
-	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
-	parts := strings.Split(trimmedPath, "/")
-	id := parts[0]
-
+func handleRegPutRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// If an ID was not provided
-	if trimmedPath == "" || len(parts) < 1 || id == "" {
+	if id == "" {
 		http.Error(w, "An ID is required to update a specific dashboard registration", http.StatusBadRequest)
 		return
 	}
@@ -189,14 +197,9 @@ func handleRegPutRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request) {
-	basePath := config.START_URL + "/registrations/"
-	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
-	parts := strings.Split(trimmedPath, "/")
-	id := parts[0]
-
+func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// If an ID was not provided
-	if trimmedPath == "" || len(parts) < 1 || id == "" {
+	if id == "" {
 		http.Error(w, "An ID is required to delete a specific dashboard registration", http.StatusBadRequest)
 		return
 	}
