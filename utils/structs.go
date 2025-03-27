@@ -44,3 +44,24 @@ type WebhookInvocation struct {
 	Event   string `json:"event"`
 	Time    string `json:"time"`
 }
+
+type CountryResponse struct {
+	Population int    `json:"population"`
+	Capital    string `json:"capital"`
+	Area       string `json:"area"`
+}
+
+type OpenMeteoresponse struct {
+	Temperature   int         `json:"temperature"`
+	Precipitation int         `json:"precipitation"`
+	Coordinates   Coordinates `json:"coordinates"`
+}
+
+type Coordinates struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+type CurrencyResponse struct {
+	TargetCurrencies []string `json:"targetCurrencies"`
+}
