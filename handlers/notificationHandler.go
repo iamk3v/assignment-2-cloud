@@ -23,7 +23,7 @@ var (
 
 func init() {
 	notiFirebaseCtx = context.Background()
-	sa := option.WithCredentialsFile("config/service-account.json")
+	sa := option.WithCredentialsFile("../config/service-account.json")
 	app, err := firebase.NewApp(notiFirebaseCtx, nil, sa)
 	if err != nil {
 		log.Fatalf("NotificationHandler init: firebase.NewApp: %v", err)
