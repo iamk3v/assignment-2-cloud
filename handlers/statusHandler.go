@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"assignment-2/config"
+	"assignment-2/database"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,9 @@ import (
 	"net/http"
 )
 
+/*
+Statushandler routes HTTP requests to the appropriate status method handler
+*/
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -20,23 +24,41 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+handleStatusGetRequest checks the status of external APIs and Firestore collection
+*/
 func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 
-	//gets the urls and checks the APIs
+	// Gets the urls and checks the APIs
 	countriesAPIStatus := checkAPI(config.RESTCOUNTRIES_ROOT + "alpha/" + config.Testcountry + "/?fields=name")
 	currencyAPIStatus := checkAPI(config.CURRENCY_ROOT + config.Testcurrency)
 	openmeteoAPIStatus := checkAPI(config.OPENMETEO_ROOT + config.Testweather)
 
-	//constructs JSON response
+	// Check if we can access dashboards in Firestore
+	dashStatusCode := http.StatusOK
+	_, dashErr := database.GetAllRegistrations()
+	if dashErr != nil {
+		dashStatusCode = http.StatusInternalServerError
+	}
+
+	// Check if we can access webhooks in Firestore and count the registered webhooks
+	notiStatusCode := http.StatusOK
+	allHooks, hooksErr := database.GetAllWebhooks(config.Ctx, config.Client)
+	if hooksErr != nil {
+		notiStatusCode = http.StatusInternalServerError
+	}
+	totalHooks := len(allHooks)
+
+	// Constructs JSON response using Statusresponse struct
 	response := utils.Statusresponse{
-		CountriesAPI: countriesAPIStatus,
-		CurrencyAPI:  currencyAPIStatus,
-		OpenmeteoAPI: openmeteoAPIStatus,
-		//Notificationresponse:,
-		//Dashboardresponse,
-		//Webhookssum:,
-		Version: config.VERSION,
-		Uptime:  utils.Gettime(),
+		CountriesAPI:         countriesAPIStatus,
+		CurrencyAPI:          currencyAPIStatus,
+		OpenmeteoAPI:         openmeteoAPIStatus,
+		Notificationresponse: notiStatusCode,
+		Dashboardresponse:    dashStatusCode,
+		Webhookssum:          totalHooks,
+		Version:              config.VERSION,
+		Uptime:               utils.Gettime(),
 	}
 
 	// Convert response to JSON and send to client
@@ -44,10 +66,9 @@ func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	//sends response to client
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		log.Print("error when trying to encode and send response to client" + err.Error())
-		http.Error(w, "An unexpected error occurred.", http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Print("Error encoding status response: ", err)
+		http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 		return
 	}
 }
@@ -60,6 +81,5 @@ func checkAPI(apiurl string) int {
 		return 0
 	}
 	defer resp.Body.Close()
-
 	return resp.StatusCode
 }
