@@ -24,3 +24,6 @@ const (
 	ERR_BAD_REQUEST           = "Bad request"
 	// Fill in with more as we go
 )
+
+// Database
+const PROJECT_ID = "assignment-2-279db"
