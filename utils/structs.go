@@ -30,6 +30,16 @@ type Features struct {
 	TargetCurrencies []string `firestore:"targetCurrencies" json:"targetCurrencies"`
 }
 
+type Featureseponse struct {
+	Temperature      float64          `firestore:"temperature" json:"temperature"`
+	Precipitation    float64          `firestore:"precipitation" json:"precipitation"`
+	Capital          string           `firestore:"capital" json:"capital"`
+	Coordinates      Coordinates      `firestore:"coordinates" json:"coordinates"`
+	Population       int              `firestore:"population" json:"population"`
+	Area             string           `firestore:"area" json:"area"`
+	CurrencyResponse CurrencyResponse `firestore:"targetCurrencies" json:"targetCurrencies"`
+}
+
 type Webhook struct {
 	ID      string `json:"id"`
 	URL     string `json:"url"`
@@ -53,13 +63,13 @@ type CountryResponse struct {
 }
 
 type OpenMeteoresponse struct {
-	Temperature   []int `json:"temperature"`
-	Precipitation []int `json:"precipitation"`
+	Temperature   []float64 `json:"temperature"`
+	Precipitation []float64 `json:"precipitation"`
 }
 
 type Coordinates struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Latitude  string `json:"latitude"`
+	Longitude string `json:"longitude"`
 }
 
 type CurrencyResponse struct {
