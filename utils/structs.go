@@ -60,7 +60,7 @@ type CountryResponse struct {
 	Capital    string   `json:"capital"`
 	Area       string   `json:"area"`
 	Latling    []string `json:"latling"`
-	Cca3       []string `json:"cca3"`
+	Cca3       string   `json:"cca3"`
 }
 
 type OpenMeteoresponse struct {
