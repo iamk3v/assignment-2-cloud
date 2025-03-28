@@ -1,7 +1,6 @@
 package database
 
 import (
-	"assignment-2/config"
 	"assignment-2/utils"
 	"errors"
 	"google.golang.org/api/iterator"
@@ -10,12 +9,9 @@ import (
 
 const collection = "dashboards"
 
-/*
-Addregistration reads JSON from the request body, stores it in firebase and writes a JSON response (ID + lastchange)
-*/
 func AddRegistration(dash utils.Dashboard) (string, error) {
 	// Adding the document to firestore
-	ref, _, err := config.Client.Collection(collection).Add(config.Ctx, dash)
+	ref, _, err := Client.Collection(collection).Add(Ctx, dash)
 	if err != nil {
 		log.Println("Error adding document to Firestore: " + err.Error())
 		return "", err
@@ -28,7 +24,7 @@ func AddRegistration(dash utils.Dashboard) (string, error) {
 DeleteRegistration Deletes a specific registration in Firestore by ID.
 */
 func DeleteRegistration(id string) error {
-	_, err := config.Client.Collection(collection).Doc(id).Delete(config.Ctx)
+	_, err := Client.Collection(collection).Doc(id).Delete(Ctx)
 	if err != nil {
 		log.Println("Error deleting document with id " + id + ": " + err.Error())
 		return err
@@ -38,13 +34,10 @@ func DeleteRegistration(id string) error {
 	return nil
 }
 
-/*
-UpdateRegistration replaces an existing registration document with the JSON from the request body
-*/
 func UpdateRegistration(id string, dash utils.Dashboard) error {
 
 	// Overwrite the document
-	_, err := config.Client.Collection(collection).Doc(id).Set(config.Ctx, dash)
+	_, err := Client.Collection(collection).Doc(id).Set(Ctx, dash)
 	if err != nil {
 		log.Println("Error updating document with id: " + id + ": " + err.Error())
 		return err
@@ -54,10 +47,10 @@ func UpdateRegistration(id string, dash utils.Dashboard) error {
 
 func GetOneRegistration(id string) (utils.Dashboard, error) {
 	// Find the document with specified id
-	res := config.Client.Collection(collection).Doc(id)
+	res := Client.Collection(collection).Doc(id)
 
 	// Get the document
-	doc, err := res.Get(config.Ctx)
+	doc, err := res.Get(Ctx)
 
 	if err != nil {
 		log.Println("Error extracting body of returned document of dashboard " + id + ": " + err.Error())
@@ -78,7 +71,7 @@ func GetOneRegistration(id string) (utils.Dashboard, error) {
 
 func GetAllRegistrations() ([]utils.Dashboard, error) {
 	// Iterator through all documents
-	iter := config.Client.Collection(collection).Documents(config.Ctx)
+	iter := Client.Collection(collection).Documents(Ctx)
 	var allDashboards []utils.Dashboard
 
 	for {
