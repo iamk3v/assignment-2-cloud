@@ -46,15 +46,15 @@ type WebhookInvocation struct {
 }
 
 type CountryResponse struct {
-	Population int    `json:"population"`
-	Capital    string `json:"capital"`
-	Area       string `json:"area"`
+	Population int      `json:"population"`
+	Capital    string   `json:"capital"`
+	Area       string   `json:"area"`
+	Latling    []string `json:"latling"`
 }
 
 type OpenMeteoresponse struct {
-	Temperature   int         `json:"temperature"`
-	Precipitation int         `json:"precipitation"`
-	Coordinates   Coordinates `json:"coordinates"`
+	Temperature   int `json:"temperature"`
+	Precipitation int `json:"precipitation"`
 }
 
 type Coordinates struct {
