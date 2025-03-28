@@ -2,14 +2,11 @@ package database
 
 import (
 	"assignment-2/utils"
-	"context"
-
-	"cloud.google.com/go/firestore"
 )
 
 // CreateWebhook stores a new webhook in Firestore
-func CreateWebhook(ctx context.Context, client *firestore.Client, hook utils.Webhook) (string, error) {
-	docRef, _, err := client.Collection("webhooks").Add(ctx, hook)
+func CreateWebhook(hook utils.Webhook) (string, error) {
+	docRef, _, err := Client.Collection("webhooks").Add(Ctx, hook)
 	if err != nil {
 		return "", err
 	}
@@ -17,8 +14,8 @@ func CreateWebhook(ctx context.Context, client *firestore.Client, hook utils.Web
 }
 
 // GetWebhook retrieves a single webhook by ID
-func GetWebhook(ctx context.Context, client *firestore.Client, id string) (*utils.Webhook, error) {
-	docSnap, err := client.Collection("webhooks").Doc(id).Get(ctx)
+func GetWebhook(id string) (*utils.Webhook, error) {
+	docSnap, err := Client.Collection("webhooks").Doc(id).Get(Ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -31,9 +28,9 @@ func GetWebhook(ctx context.Context, client *firestore.Client, id string) (*util
 }
 
 // GetAllWebhooks retrieves all webhooks
-func GetAllWebhooks(ctx context.Context, client *firestore.Client) ([]utils.Webhook, error) {
+func GetAllWebhooks() ([]utils.Webhook, error) {
 	var hooks []utils.Webhook
-	iter := client.Collection("webhooks").Documents(ctx)
+	iter := Client.Collection("webhooks").Documents(Ctx)
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -50,7 +47,7 @@ func GetAllWebhooks(ctx context.Context, client *firestore.Client) ([]utils.Webh
 }
 
 // DeleteWebhook deletes a single webhook
-func DeleteWebhook(ctx context.Context, client *firestore.Client, id string) error {
-	_, err := client.Collection("webhooks").Doc(id).Delete(ctx)
+func DeleteWebhook(id string) error {
+	_, err := Client.Collection("webhooks").Doc(id).Delete(Ctx)
 	return err
 }
