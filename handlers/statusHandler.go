@@ -43,7 +43,7 @@ func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Check if we can access webhooks in Firestore and count the registered webhooks
 	notiStatusCode := http.StatusOK
-	allHooks, hooksErr := database.GetAllWebhooks(database.Ctx, database.Client)
+	allHooks, hooksErr := database.GetAllWebhooks()
 	if hooksErr != nil {
 		notiStatusCode = http.StatusInternalServerError
 	}

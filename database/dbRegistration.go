@@ -2,6 +2,7 @@ package database
 
 import (
 	"assignment-2/utils"
+	"cloud.google.com/go/firestore"
 	"errors"
 	"google.golang.org/api/iterator"
 	"log"
@@ -42,6 +43,29 @@ func UpdateRegistration(id string, dash utils.Dashboard) error {
 		log.Println("Error updating document with id: " + id + ": " + err.Error())
 		return err
 	}
+	return nil
+}
+
+func PatchRegistration(id string, patchData map[string]interface{}) error {
+
+	// Define the firebase update array
+	var updates []firestore.Update
+
+	// Go through the patchData sent in request
+	for path, value := range patchData {
+		updates = append(updates, firestore.Update{
+			Path:  path,
+			Value: value,
+		})
+	}
+
+	// Update the documents with the firebase update array
+	_, err := Client.Collection(collection).Doc(id).Update(Ctx, updates)
+	if err != nil {
+		log.Println("Error updating document with id: " + id + ": " + err.Error())
+		return err
+	}
+
 	return nil
 }
 

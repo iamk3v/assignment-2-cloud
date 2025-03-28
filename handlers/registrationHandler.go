@@ -28,6 +28,8 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 			handleRegDeleteRequest(w, r, id)
 		case http.MethodPut:
 			handleRegPutRequest(w, r, id)
+		case http.MethodPatch:
+			handleRegPatchRequest(w, r, id)
 		default:
 			http.Error(w,
 				fmt.Sprintf("Method %s not supported on /notifications/{id}", r.Method),
@@ -210,5 +212,49 @@ func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
+	// If an ID was not provided
+	if id == "" {
+		http.Error(w, "An ID is required to update a specific dashboard registration", http.StatusBadRequest)
+		return
+	}
+
+	// Read the body
+	content, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Error reading request body: " + err.Error())
+		http.Error(w, "Reading payload failed.", http.StatusInternalServerError)
+		return
+	}
+
+	defer r.Body.Close()
+
+	if len(content) == 0 {
+		http.Error(w, "Your payload appears to be empty.", http.StatusBadRequest)
+		return
+	}
+
+	var patchData map[string]interface{}
+	// Decode JSON into the dashboard struct
+	err = json.Unmarshal(content, &patchData)
+	if err != nil {
+		log.Println("Error unmarshalling payload: " + err.Error())
+		http.Error(w, "There was an error unmarshalling payload", http.StatusInternalServerError)
+		return
+	}
+
+	// Update timestamp
+	patchData["LastChange"] = time.Now()
+
+	// Patch with request body
+	err = database.PatchRegistration(id, patchData)
+	if err != nil {
+		http.Error(w, "Could not patch dashboard with id: "+id+"\nMake sure all fields are valid fields", http.StatusInternalServerError)
+	}
+
+	// Return status code to indicate success
 	w.WriteHeader(http.StatusNoContent)
 }
