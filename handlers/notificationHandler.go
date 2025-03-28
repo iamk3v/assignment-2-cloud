@@ -4,35 +4,12 @@ import (
 	"assignment-2/config"
 	"assignment-2/database"
 	"assignment-2/utils"
-	"context"
 	"encoding/json"
-	firebase "firebase.google.com/go"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
-
-	"cloud.google.com/go/firestore"
-	"google.golang.org/api/option"
 )
-
-var (
-	notiClient      *firestore.Client
-	notiFirebaseCtx context.Context
-)
-
-func init() {
-	notiFirebaseCtx = context.Background()
-	sa := option.WithCredentialsFile("config/service-account.json")
-	app, err := firebase.NewApp(notiFirebaseCtx, nil, sa)
-	if err != nil {
-		log.Fatalf("NotificationHandler init: firebase.NewApp: %v", err)
-	}
-	notiClient, err = app.Firestore(notiFirebaseCtx)
-	if err != nil {
-		log.Fatalf("NotificationHandler init: app.Firestore: %v", err)
-	}
-}
 
 func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	// /dashboard/v1/notifications/{id} or /dashboard/v1/notifications/
@@ -66,7 +43,7 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNotiGetAllRequest(w http.ResponseWriter, r *http.Request) {
-	hooks, err := database.GetAllWebhooks(notiFirebaseCtx, notiClient)
+	hooks, err := database.GetAllWebhooks()
 	if err != nil {
 		log.Println("Error retrieving webhooks:", err)
 		http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
@@ -77,7 +54,7 @@ func handleNotiGetAllRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNotiGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
-	hook, err := database.GetWebhook(notiFirebaseCtx, notiClient, id)
+	hook, err := database.GetWebhook(id)
 	if err != nil {
 		log.Println("Error retrieving webhook:", err)
 		http.Error(w, config.ERR_NOT_FOUND, http.StatusNotFound)
@@ -94,7 +71,7 @@ func handleNotiPostRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, config.ERR_BAD_REQUEST, http.StatusBadRequest)
 		return
 	}
-	id, err := database.CreateWebhook(notiFirebaseCtx, notiClient, hook)
+	id, err := database.CreateWebhook(hook)
 	if err != nil {
 		log.Println("Error creating webhook:", err)
 		http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
@@ -107,7 +84,7 @@ func handleNotiPostRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNotiDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
-	err := database.DeleteWebhook(notiFirebaseCtx, notiClient, id)
+	err := database.DeleteWebhook(id)
 	if err != nil {
 		log.Println("Error deleting webhook:", err)
 		http.Error(w, config.ERR_NOT_FOUND, http.StatusNotFound)
