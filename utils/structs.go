@@ -64,8 +64,8 @@ type CountryResponse struct {
 }
 
 type OpenMeteoresponse struct {
-	Temperature   []float64 `json:"temperature"`
-	Precipitation []float64 `json:"precipitation"`
+	Temperature   float64 `json:"temperature"`
+	Precipitation float64 `json:"precipitation"`
 }
 
 type Coordinates struct {
