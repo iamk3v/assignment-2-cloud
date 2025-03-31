@@ -3,8 +3,7 @@ package handlers
 import (
 	"assignment-2/config"
 	"assignment-2/database"
-	"assignment-2/utils"
-	"encoding/asn1"
+	"assignment-2/services"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -12,6 +11,9 @@ import (
 	"time"
 )
 
+/*
+DashboardHandler Handles GET requests for a populated dashboard
+*/
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -23,67 +25,63 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+handleDashGetRequest Extracts the dashboard ID, gets configuration, fetches external data and
+sends the dashboard response
+*/
 func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 	basePath := config.START_URL + "/dashboards/"
 	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
 	parts := strings.Split(trimmedPath, "/")
 
-	// If an ID was provided, get one
-	if len(parts) >= 1 && parts[0] != "" {
-		http.Error("dasboard ID not provided", http.StatusBadRequest)
+	// Check if ID is provided
+	if len(parts) < 1 || parts[0] == "" {
+		http.Error(w, "Dashboard ID not provided", http.StatusBadRequest)
 		return
 	}
 	id := parts[0]
 
-	rawContent, err := database.GetOneRegistration(id)
+	// Retrieve the dashboard configuration from firestore
+	reg, err := database.GetOneRegistration(id)
 	if err != nil {
 		log.Println("Error retrieving dashboard with id " + id + ": " + err.Error())
 		http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
 		return
 	}
 
-	// Extract fields from rawConfig (stored in Firestore)
-	country := rawContent.Country
-	isoCode := rawContent.IsoCode
-	features := rawContent.Features
-	lastsignin := rawContent.LastChange
+	// Extract fields from the registration
+	country := reg.Country
+	isoCode := reg.IsoCode
+	features := reg.Features
 
-	// Get country info
+	// Get country info from the REST Countries API
 	countryData, err := database.GetCountryData(country, isoCode)
 	if err != nil {
 		http.Error(w, "Failed to fetch country data", http.StatusBadGateway)
 		return
 	}
 
-	// Get weather info
+	// Get weather info from the Open-Meteo API
 	weatherData, err := database.GetWeatherDate(countryData.Latling[0], countryData.Latling[1])
 	if err != nil {
-		http.Error(w, "Failed to fetch country data", http.StatusBadGateway)
+		http.Error(w, "Failed to fetch weather data", http.StatusBadGateway)
 		return
 	}
 
-	precaverage := database.Average(weatherData.Precipitation)
-	tempaverage := database.Average(weatherData.Temperature)
+	tempAverage := weatherData.Temperature
+	precAverage := weatherData.Precipitation
 
-	// Prepare response
-	response := map[string]interface{}{
-		"country": country,
-		"isoCode": isoCode,
-		"features": utils.Featureseponse{},
-		"lastRetrival": lastsignin,
-
-	}
-
-	responseFeatures := response["features"].(map[string]interface{})
+	// Assemble the features based on the configuration
+	featuresMap := make(map[string]interface{})
 
 	// Capital
 	if features.Capital {
-		responseFeatures["capital"] = countryData.Capital
+		featuresMap["capital"] = countryData.Capital
 	}
 
 	// Coordinates
 	if features.Coordinates {
-		responseFeatures["coordinates"] = map[string]string{
+		featuresMap["coordinates"] = map[string]string{
 			"latitude":  countryData.Latling[0],
 			"longitude": countryData.Latling[1],
 		}
@@ -91,32 +89,40 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Population
 	if features.Population {
-		responseFeatures["population"] = countryData.Population
+		featuresMap["population"] = countryData.Population
 	}
 
 	// Area
 	if features.Area {
-		responseFeatures["area"] = countryData.Area
+		featuresMap["area"] = countryData.Area
 	}
 
+	// Temperature
 	if features.Temperature {
-		responseFeatures["temperature"] = tempaverage
+		featuresMap["temperature"] = tempAverage
 	}
 
+	// Precipitation
 	if features.Precipitation {
-		responseFeatures["precipitation"] = precaverage
+		featuresMap["precipitation"] = precAverage
 	}
-
 
 	// Currency
-	if tcs := features.TargetCurrencies; len(tcs) > 0 {
-
-		rates, err := database.GetCurrencyRates(tcs, countryData.Cca3)
+	if len(features.TargetCurrencies) > 0 {
+		rates, err := database.GetCurrencyRates(features.TargetCurrencies, countryData.Cca3)
 		if err != nil {
 			http.Error(w, "Currency API failed", http.StatusBadGateway)
 			return
 		}
-		responseFeatures["targetCurrencies"] = rates
+		featuresMap["targetCurrencies"] = rates
+	}
+
+	// Building the response
+	response := map[string]interface{}{
+		"country":       country,
+		"isoCode":       isoCode,
+		"features":      featuresMap,
+		"lastRetrieval": time.Now().Format(time.RFC3339),
 	}
 
 	// Trigger webhooks asynchronously
@@ -124,6 +130,8 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Send the final response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Println("Error encoding response", err)
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
 }
