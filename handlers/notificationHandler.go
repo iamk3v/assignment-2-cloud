@@ -77,7 +77,10 @@ func handleNotiPostRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 		return
 	}
-	resp := map[string]string{"id": id}
+	resp := map[string]string{
+		"id":      id,
+		"httpCat": "https://http.cat/201",
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(resp)
