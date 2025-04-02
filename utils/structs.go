@@ -13,6 +13,13 @@ type Statusresponse struct {
 	Uptime               string `firestore:"uptime" json:"uptime"`
 }
 
+type DashboardPost struct {
+	Country    string    `firestore:"country" json:"country"`
+	IsoCode    string    `firestore:"isoCode" json:"isoCode"`
+	Features   Features  `firestore:"features" json:"features"`
+	LastChange time.Time `firestore:"lastChange" json:"lastChange"`
+}
+
 type Dashboard struct {
 	Id         string    `firestore:"id" json:"id"`
 	Country    string    `firestore:"country" json:"country"`
