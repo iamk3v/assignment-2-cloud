@@ -348,7 +348,7 @@ func handleRegHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 		// Set and send back headers
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(content)))
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNoContent)
 
 	} else { // ID provided
 		// Get one registration
@@ -370,6 +370,6 @@ func handleRegHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 		// Set and send back headers
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(content)))
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
