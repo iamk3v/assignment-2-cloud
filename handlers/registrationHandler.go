@@ -30,6 +30,8 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 			handleRegPutRequest(w, r, id)
 		case http.MethodPatch:
 			handleRegPatchRequest(w, r, id)
+		case http.MethodHead:
+			handleRegHeadRequest(w, r, id)
 		default:
 			http.Error(w,
 				fmt.Sprintf("Method %s not supported on /notifications/{id}", r.Method),
@@ -43,6 +45,8 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 			handleRegGetAllRequest(w, r)
 		case http.MethodPost:
 			handleRegPostRequest(w, r)
+		case http.MethodHead:
+			handleRegHeadRequest(w, r, "")
 		default:
 			http.Error(w,
 				fmt.Sprintf("Method %s not supported on /notifications/", r.Method),
@@ -55,7 +59,6 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 func handleRegGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
 	rawContent, err := database.GetOneRegistration(id)
 	if err != nil {
-		log.Println("hei")
 		log.Println("Error retrieving registration with id " + id + ": " + err.Error())
 		http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
 		return
@@ -322,4 +325,51 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 
 	// Return status code to indicate success
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func handleRegHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
+	if id == "" { // No ID provided
+		// Get all registrations
+		rawContent, err := database.GetAllRegistrations()
+		if err != nil {
+			log.Println("Error retrieving all dashboards: " + err.Error())
+			http.Error(w, "There was an error retrieving all dashboards", http.StatusInternalServerError)
+			return
+		}
+
+		// Encode response
+		content, err := json.Marshal(rawContent)
+		if err != nil {
+			log.Println("Error marshalling payload: " + err.Error())
+			http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
+			return
+		}
+
+		// Set and send back headers
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(content)))
+		w.WriteHeader(http.StatusOK)
+
+	} else { // ID provided
+		// Get one registration
+		rawContent, err := database.GetOneRegistration(id)
+		if err != nil {
+			log.Println("Error retrieving registration with id " + id + ": " + err.Error())
+			http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
+			return
+		}
+
+		// Encode response
+		content, err := json.Marshal(rawContent)
+		if err != nil {
+			log.Println("Error marshalling payload: " + err.Error())
+			http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
+			return
+		}
+
+		// Set and send back headers
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(content)))
+		w.WriteHeader(http.StatusOK)
+	}
 }
