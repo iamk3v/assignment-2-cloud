@@ -1,8 +1,7 @@
-package handlers_test
+package handlers
 
 import (
 	"assignment-2/config"
-	"assignment-2/handlers"
 	"encoding/json"
 	"io"
 	"net/http"
