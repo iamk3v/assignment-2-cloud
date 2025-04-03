@@ -2,6 +2,7 @@ package database
 
 import (
 	"assignment-2/utils"
+	"cloud.google.com/go/firestore"
 )
 
 // CreateWebhook stores a new webhook in Firestore
@@ -49,5 +50,12 @@ func GetAllWebhooks() ([]utils.Webhook, error) {
 // DeleteWebhook deletes a single webhook
 func DeleteWebhook(id string) error {
 	_, err := Client.Collection("webhooks").Doc(id).Delete(Ctx)
+	return err
+}
+
+// UpdateWebhook updates an existing webhook document by merging the provided data.
+func UpdateWebhook(id string, updatedData map[string]interface{}) error {
+	// The MergeAll option will update only the fields provided in updatedData.
+	_, err := Client.Collection("webhooks").Doc(id).Set(Ctx, updatedData, firestore.MergeAll)
 	return err
 }

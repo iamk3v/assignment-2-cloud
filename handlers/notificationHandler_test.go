@@ -1,27 +1,29 @@
-package handlers
+package handlers_test
 
 import (
 	"assignment-2/config"
+	"assignment-2/handlers"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-// TestNotificationHandler_Post tests the POST endpoint for creating a new webhook.
+// TestNotificationHandler_Post creates a new webhook and checks that a valid ID is returned.
 func TestNotificationHandler_Post(t *testing.T) {
 	// Create a POST request with a valid JSON payload.
 	payload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`
 	req := httptest.NewRequest(http.MethodPost, config.START_URL+"/notifications/", strings.NewReader(payload))
 	rr := httptest.NewRecorder()
 
-	// Directly call NotificationHandler.
-	NotificationHandler(rr, req)
+	// Call the NotificationHandler directly.
+	handlers.NotificationHandler(rr, req)
 	res := rr.Result()
 	defer res.Body.Close()
 
-	// Check that the status code is 201 Created.
+	// Verify that the status code is 201 Created.
 	if res.StatusCode != http.StatusCreated {
 		t.Errorf("Expected status %d, got %d", http.StatusCreated, res.StatusCode)
 	}
@@ -32,12 +34,12 @@ func TestNotificationHandler_Post(t *testing.T) {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
 
-	// Verify that the response contains a non-empty "id".
+	// Check that the response contains a non-empty "id".
 	if id, ok := respBody["id"]; !ok || id == "" {
-		t.Errorf("Expected a non-empty webhook id, got %q", id)
+		t.Errorf("Expected a valid webhook id, got %q", respBody["id"])
 	}
 
-	// Verify that the response includes the HTTP Cat URL for 201.
+	// Check for the HTTP Cat URL.
 	if cat, ok := respBody["httpCat"]; ok {
 		expectedCat := "https://http.cat/201"
 		if cat != expectedCat {
