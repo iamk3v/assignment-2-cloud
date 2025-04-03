@@ -18,7 +18,7 @@ func TestNotificationHandler_Post(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Call the NotificationHandler directly.
-	handlers.NotificationHandler(rr, req)
+	NotificationHandler(rr, req)
 	res := rr.Result()
 	defer res.Body.Close()
 
@@ -53,7 +53,7 @@ func TestNotificationHandler_Get(t *testing.T) {
 	postPayload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`
 	reqPost := httptest.NewRequest(http.MethodPost, config.START_URL+"/notifications/", strings.NewReader(postPayload))
 	rrPost := httptest.NewRecorder()
-	handlers.NotificationHandler(rrPost, reqPost)
+	NotificationHandler(rrPost, reqPost)
 	resPost := rrPost.Result()
 	defer resPost.Body.Close()
 
@@ -74,7 +74,7 @@ func TestNotificationHandler_Get(t *testing.T) {
 	getURL := config.START_URL + "/notifications/" + id
 	reqGet := httptest.NewRequest(http.MethodGet, getURL, nil)
 	rrGet := httptest.NewRecorder()
-	handlers.NotificationHandler(rrGet, reqGet)
+	NotificationHandler(rrGet, reqGet)
 	resGet := rrGet.Result()
 	defer resGet.Body.Close()
 
@@ -105,7 +105,7 @@ func TestNotificationHandler_Delete(t *testing.T) {
 	payload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`
 	reqPost := httptest.NewRequest(http.MethodPost, config.START_URL+"/notifications/", strings.NewReader(payload))
 	rrPost := httptest.NewRecorder()
-	handlers.NotificationHandler(rrPost, reqPost)
+	NotificationHandler(rrPost, reqPost)
 	resPost := rrPost.Result()
 	defer resPost.Body.Close()
 
@@ -126,7 +126,7 @@ func TestNotificationHandler_Delete(t *testing.T) {
 	delURL := config.START_URL + "/notifications/" + id
 	reqDel := httptest.NewRequest(http.MethodDelete, delURL, nil)
 	rrDel := httptest.NewRecorder()
-	handlers.NotificationHandler(rrDel, reqDel)
+	NotificationHandler(rrDel, reqDel)
 	resDel := rrDel.Result()
 	defer resDel.Body.Close()
 
@@ -138,7 +138,7 @@ func TestNotificationHandler_Delete(t *testing.T) {
 	// Try to GET the deleted webhook to confirm deletion.
 	reqGet := httptest.NewRequest(http.MethodGet, delURL, nil)
 	rrGet := httptest.NewRecorder()
-	handlers.NotificationHandler(rrGet, reqGet)
+	NotificationHandler(rrGet, reqGet)
 	resGet := rrGet.Result()
 	defer resGet.Body.Close()
 
@@ -154,7 +154,7 @@ func TestNotificationHandler_Patch(t *testing.T) {
 	postPayload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`
 	reqPost := httptest.NewRequest(http.MethodPost, config.START_URL+"/notifications/", strings.NewReader(postPayload))
 	rrPost := httptest.NewRecorder()
-	handlers.NotificationHandler(rrPost, reqPost)
+	NotificationHandler(rrPost, reqPost)
 	resPost := rrPost.Result()
 	defer resPost.Body.Close()
 
@@ -177,7 +177,7 @@ func TestNotificationHandler_Patch(t *testing.T) {
 	patchURL := config.START_URL + "/notifications/" + id
 	reqPatch := httptest.NewRequest(http.MethodPatch, patchURL, strings.NewReader(patchPayload))
 	rrPatch := httptest.NewRecorder()
-	handlers.NotificationHandler(rrPatch, reqPatch)
+	NotificationHandler(rrPatch, reqPatch)
 	resPatch := rrPatch.Result()
 	defer resPatch.Body.Close()
 
@@ -189,7 +189,7 @@ func TestNotificationHandler_Patch(t *testing.T) {
 	// Issue a GET request to verify that the update took effect.
 	reqGet := httptest.NewRequest(http.MethodGet, patchURL, nil)
 	rrGet := httptest.NewRecorder()
-	handlers.NotificationHandler(rrGet, reqGet)
+	NotificationHandler(rrGet, reqGet)
 	resGet := rrGet.Result()
 	defer resGet.Body.Close()
 
