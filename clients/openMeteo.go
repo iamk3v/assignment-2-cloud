@@ -4,66 +4,58 @@ import (
 	"assignment-2/config"
 	"assignment-2/utils"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-/*
-openMeteoAPIResponse Represents the structure of the Open-Meteo API response.
-*/
-type openMeteoAPIResponse struct {
-	Hourly struct {
-		Temperature2m []float64 `json:"temperature_2m"`
-		Precipitation []float64 `json:"precipitation"`
-	} `json:"hourly"`
-}
+func GetWeatherDate(latitude float64, longitude float64) (*utils.OpenMeteoresponse, error) {
 
-/*
-average Computes the mean value of a float number, and returns 0 if it is empty
-*/
-func average(values []float64) float64 {
-	if len(values) == 0 {
-		return 0
-	}
-	sum := 0.0
-	// Loop through each value in the slice and add it to the sum
-	for _, v := range values {
-		sum += v
-	}
-	// Returning the average
-	return sum / float64(len(values))
-}
+	url := fmt.Sprintf("%s?latitude=%f&longitude=%f&daily=temperature_2m_mean,precipitation_probability_mean", config.OPENMETEO_ROOT, latitude, longitude)
 
-/*
-GetWeather Retrieves weather data for a given latitude and longitude from the Open-Meteo API.
-It computes the average temperature and percipitation from the hourly data
-*/
-func GetWeather(latitude, longitude string) (*utils.OpenMeteoresponse, error) {
-	// Construct the Url
-	url := fmt.Sprintf("%s?latitude=%s&longitude=%s&hourly=temperature_2m,precipitation", config.OPENMETEO_ROOT, latitude, longitude)
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch weather data: %w", err)
 	}
 	defer resp.Body.Close()
+
+	// Handle HTTP errors from external API
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("OpenMeteo API returned status %d", resp.StatusCode))
+		return nil, fmt.Errorf("OpenMeteo API returned status %d", resp.StatusCode)
 	}
-	// Read the response body
+
+	// Read API response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error: Failed to read API response. %w", err)
+
 	}
-	var apiResp openMeteoAPIResponse
-	if err := json.Unmarshal(body, &apiResp); err != nil {
-		return nil, err
+
+	// Parse JSON response
+	var weatherData utils.OpenMeteoresponse
+
+	if err := json.Unmarshal(body, &weatherData); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
-	// Compute the average values for temp and precipitation
-	weather := &utils.OpenMeteoresponse{
-		Temperature:   average(apiResp.Hourly.Temperature2m),
-		Precipitation: average(apiResp.Hourly.Precipitation),
+
+	// Ensure data is available
+	if len(weatherData.Daily.Precipitation) == 0 {
+		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
-	return weather, nil
+
+	return &weatherData, nil
+}
+
+func Average(numbers []float64) float64 {
+	sum := 0.0
+	for _, num := range numbers {
+		sum += num
+	}
+
+	var mean float64
+	if len(numbers) > 0 {
+		mean = sum / float64(len(numbers))
+	}
+
+	return mean
 }

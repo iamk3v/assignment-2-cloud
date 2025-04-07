@@ -2,45 +2,55 @@ package clients
 
 import (
 	"assignment-2/config"
+	"assignment-2/utils"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-/*
-CurrencyAPIResponse Contains a map of currency codes to their corresponding exchange rates
-*/
-type CurrencyAPIResponse struct {
-	Rates map[string]float64 `json:"rates"`
-}
+func GetCurrencyRates(curency []string, countrycode string) ([]utils.CurrencyResponse, error) {
+	url := config.CURRENCY_ROOT + countrycode
 
-/*
-GetRates Retrieves currency exchange rates for the provided base currency and returns them
-*/
-func GetRates(baseCurrency string) (map[string]float64, error) {
-	// Construct the API endpoint Url
-	url := fmt.Sprintf("%s%s", config.CURRENCY_ROOT, baseCurrency)
-	// Fetch the currency data
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch exchange rate data: %w", err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprint("Currency API returned: %d", resp.StatusCode))
-	}
-	// Reading the response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
 	}
 
-	var apiResp CurrencyAPIResponse
-	if err := json.Unmarshal(body, &apiResp); err != nil {
-		return nil, err
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read API response: %w", err)
 	}
-	// return the map of exchange rates
-	return apiResp.Rates, nil
+
+	// Define response struct to match the JSON
+	var apiResponse struct {
+		BaseCode string             `json:"base_code"`
+		Rates    map[string]float64 `json:"rates"`
+	}
+
+	if err := json.Unmarshal(body, &apiResponse); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
+	}
+
+	var fullcurrencydata []utils.CurrencyResponse
+
+	for _, code := range curency {
+		rate, exists := apiResponse.Rates[code]
+		if !exists {
+			return nil, fmt.Errorf("currency code %s not found in API response", code)
+		}
+
+		fullcurrencydata = append(fullcurrencydata, utils.CurrencyResponse{
+			Code: code,
+			Rate: rate,
+		})
+	}
+
+	return fullcurrencydata, nil
+
 }

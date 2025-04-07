@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"assignment-2/clients"
 	"assignment-2/config"
 	"assignment-2/database"
 	"assignment-2/services"
+	"assignment-2/utils"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -55,21 +57,27 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 	features := reg.Features
 
 	// Get country info from the REST Countries API
-	countryData, err := database.GetCountryData(country, isoCode)
+	countryData, err := clients.GetCountryData(country, isoCode)
 	if err != nil {
+		log.Println("failed to fetch country data:" + err.Error())
 		http.Error(w, "Failed to fetch country data", http.StatusBadGateway)
 		return
 	}
 
+	currencyCode := []string{}
+	for code := range countryData.Currencies {
+		currencyCode = append(currencyCode, code)
+	}
+
 	// Get weather info from the Open-Meteo API
-	weatherData, err := database.GetWeatherDate(countryData.Latling[0], countryData.Latling[1])
+	weatherData, err := clients.GetWeatherDate(countryData.Latlng[0], countryData.Latlng[1])
 	if err != nil {
 		http.Error(w, "Failed to fetch weather data", http.StatusBadGateway)
 		return
 	}
 
-	tempAverage := weatherData.Temperature
-	precAverage := weatherData.Precipitation
+	tempAverage := clients.Average(weatherData.Daily.Temperature)
+	precAverage := clients.Average(weatherData.Daily.Precipitation)
 
 	// Assemble the features based on the configuration
 	featuresMap := make(map[string]interface{})
@@ -81,9 +89,9 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Coordinates
 	if features.Coordinates {
-		featuresMap["coordinates"] = map[string]string{
-			"latitude":  countryData.Latling[0],
-			"longitude": countryData.Latling[1],
+		featuresMap["coordinates"] = map[string]float64{
+			"latitude":  countryData.Latlng[0],
+			"longitude": countryData.Latlng[1],
 		}
 	}
 
@@ -109,12 +117,41 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Currency
 	if len(features.TargetCurrencies) > 0 {
-		rates, err := database.GetCurrencyRates(features.TargetCurrencies, countryData.Cca3)
-		if err != nil {
-			http.Error(w, "Currency API failed", http.StatusBadGateway)
-			return
+		for currency := range currencyCode {
+			rates, err := clients.GetCurrencyRates(features.TargetCurrencies, currencyCode[currency])
+			if err != nil {
+				http.Error(w, "Currency API failed", http.StatusBadGateway)
+				return
+			}
+			// Initialize if needed to avoid panic
+			if featuresMap["targetCurrencies"] == nil {
+				featuresMap["targetCurrencies"] = []utils.GroupedCurrencyRates{}
+			}
+
+			existingGroups := featuresMap["targetCurrencies"].([]utils.GroupedCurrencyRates)
+
+			base := currencyCode[currency] // e.g., "BND", "SGD"
+
+			groupExists := false
+
+			// Check if group exists
+			for i, group := range existingGroups {
+				if group.BaseCode == base {
+					existingGroups[i].Rates = append(existingGroups[i].Rates, rates...)
+					groupExists = true
+					break
+				}
+			}
+
+			if !groupExists {
+				existingGroups = append(existingGroups, utils.GroupedCurrencyRates{
+					BaseCode: base,
+					Rates:    rates,
+				})
+			}
+
+			featuresMap["targetCurrencies"] = existingGroups
 		}
-		featuresMap["targetCurrencies"] = rates
 	}
 
 	// Building the response

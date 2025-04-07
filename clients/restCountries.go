@@ -10,47 +10,45 @@ import (
 	"net/http"
 )
 
-/*
-GetCountry Retrieves country data using ISO code or country name and then parses the JSON response into CountryResponse
-*/
-func GetCountry(name string, isoCode string) (*utils.CountryResponse, error) {
+func GetCountryData(name string, isoCode string) (*utils.CountryResponse, error) {
 	var url string
-	// If the Url is ISO code or country name
-	if isoCode == "" {
-		url = fmt.Sprintf("%s/alpha/%s", config.RESTCOUNTRIES_ROOT, isoCode)
+
+	if isoCode != "" {
+		url = fmt.Sprintf("%salpha/%s", config.RESTCOUNTRIES_ROOT, isoCode)
 	} else if name != "" {
-		url = fmt.Sprintf("%sname%s", config.RESTCOUNTRIES_ROOT, name)
+		url = fmt.Sprintf("%sname/%s", config.RESTCOUNTRIES_ROOT, name)
 	} else {
-		// Error if none is provided
 		return nil, errors.New("no country name or isoCode provided")
 	}
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch country data: %w", err)
 	}
-
 	defer resp.Body.Close()
+
+	// Handle HTTP errors from external API
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("REST countries API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("REST Countries API returned status %d", resp.StatusCode)
 	}
 
-	// Read the response body
+	// Read API response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error: Failed to read API response. %w", err)
+
 	}
 
-	var countries []utils.CountryResponse
-	if err := json.Unmarshal(body, &countries); err != nil {
-		return nil, err
+	// Parse JSON response
+	var countryData []utils.CountryResponse
+	if err := json.Unmarshal(body, &countryData); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
 
-	// If the country data is returned
-	if len(countries) == 0 {
-		return nil, errors.New("no country found")
+	// Ensure data is available
+	if len(countryData) == 0 {
+		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
 
-	// Returns the first country
-	return &countries[0], nil
+	return &countryData[0], nil
 }
