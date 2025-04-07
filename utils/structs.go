@@ -56,16 +56,22 @@ type WebhookInvocation struct {
 }
 
 type CountryResponse struct {
-	Population int      `json:"population"`
-	Capital    string   `json:"capital"`
-	Area       string   `json:"area"`
-	Latling    []string `json:"latling"`
-	Cca3       string   `json:"cca3"`
+	Population int       `json:"population"`
+	Capital    []string  `json:"capital"`
+	Area       float64   `json:"area"`
+	Latlng     []float64 `json:"latlng"`
+	Cca3       string    `json:"cca3"`
+	Currencies map[string]struct {
+		Name   string `json:"name"`
+		Symbol string `json:"symbol"`
+	} `json:"currencies"`
 }
 
 type OpenMeteoresponse struct {
-	Temperature   float64 `json:"temperature"`
-	Precipitation float64 `json:"precipitation"`
+	Daily struct {
+		Temperature   []float64 `json:"temperature_2m_mean"`
+		Precipitation []float64 `json:"precipitation_probability_mean"`
+	}
 }
 
 type Coordinates struct {
@@ -74,5 +80,11 @@ type Coordinates struct {
 }
 
 type CurrencyResponse struct {
-	TargetCurrencies []string `json:"targetCurrencies"`
+	Code string  `json:"code"`
+	Rate float64 `json:"rate"`
+}
+
+type GroupedCurrencyRates struct {
+	BaseCode string             `json:"base_code"`
+	Rates    []CurrencyResponse `json:"rates"`
 }
