@@ -7,6 +7,7 @@ import (
 	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -17,9 +18,22 @@ import (
 DashboardHandler Handles GET requests for a populated dashboard
 */
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	basePath := config.START_URL + "/dashboards/"
+	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
+	parts := strings.Split(trimmedPath, "/")
+	id := parts[0]
+	// Check if ID is provided
+
+	if len(parts) < 1 || id == "" {
+		http.Error(w, "Dashboard ID not provided", http.StatusBadRequest)
+		return
+	}
+
 	switch r.Method {
 	case http.MethodGet:
-		handleDashGetRequest(w, r)
+		handleDashGetRequest(w, r, id)
+	case http.MethodHead:
+		handleDashHeadRequest(w, r, id)
 	default:
 		http.Error(w, "REST method '"+r.Method+"' not supported. "+
 			"Currently only '"+http.MethodGet+"' is supported.", http.StatusNotImplemented)
@@ -31,17 +45,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 handleDashGetRequest Extracts the dashboard ID, gets configuration, fetches external data and
 sends the dashboard response
 */
-func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
-	basePath := config.START_URL + "/dashboards/"
-	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
-	parts := strings.Split(trimmedPath, "/")
-
-	// Check if ID is provided
-	if len(parts) < 1 || parts[0] == "" {
-		http.Error(w, "Dashboard ID not provided", http.StatusBadRequest)
-		return
-	}
-	id := parts[0]
+func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 
 	// Retrieve the dashboard configuration from firestore
 	reg, err := database.GetOneRegistration(id)
@@ -171,4 +175,27 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error encoding response", err)
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
+}
+
+func handleDashHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
+	// Get one dashboard
+	rawContent, err := database.GetOneRegistration(id)
+	if err != nil {
+		log.Println("Error retrieving dashboard with id " + id + ": " + err.Error())
+		http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
+		return
+	}
+
+	// Encode response
+	content, err := json.Marshal(rawContent)
+	if err != nil {
+		log.Println("Error marshalling payload: " + err.Error())
+		http.Error(w, "There was an error marshalling payload", http.StatusInternalServerError)
+		return
+	}
+
+	// Set and send back headers
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(content)))
+	w.WriteHeader(http.StatusNoContent)
 }
