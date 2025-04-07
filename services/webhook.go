@@ -31,7 +31,7 @@ func TriggerWebhooks(event string, country string) {
 				ID:      hook.ID,
 				Country: hook.Country,
 				Event:   event,
-				Time:    time.Now().Format(time.RFC3339),
+				Time:    time.Now().Local().String(),
 			}
 
 			// Payload to JSON
