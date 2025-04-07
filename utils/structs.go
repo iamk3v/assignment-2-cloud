@@ -48,10 +48,10 @@ type Featureseponse struct {
 }
 
 type Webhook struct {
-	ID      string `json:"id"`
-	URL     string `json:"url"`
-	Country string `json:"country,omitempty"` // if empty, applies to all countries
-	Event   string `json:"event"`             // REGISTER, CHANGE, DELETE, INVOKE, ...
+	ID      string `firestore:"id" json:"id"`
+	URL     string `firestore:"url" json:"url"`
+	Country string `firestore:"country" json:"country,omitempty"` // if empty, applies to all countries
+	Event   string `firestore:"event" json:"event"`               // REGISTER, CHANGE, DELETE, INVOKE, ...
 }
 
 // WebhookInvocation is the payload we POST to the subscribed URL

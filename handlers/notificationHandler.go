@@ -97,6 +97,7 @@ func handleNotiDeleteRequest(w http.ResponseWriter, r *http.Request, id string) 
 		http.Error(w, config.ERR_NOT_FOUND, http.StatusNotFound)
 		return
 	}
+	log.Println("Deleted webhook:", id)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -166,7 +167,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 		originalData[key] = value
 	}
 
-	originalData["lastChange"] = time.Now()
+	originalData["lastChange"] = time.Now().Format(time.RFC3339)
 
 	// Update the webhook document in Firestore using the UpdateWebhook function.
 	err = database.UpdateWebhook(id, originalData)
