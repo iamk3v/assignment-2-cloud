@@ -3,6 +3,7 @@ package handlers
 import (
 	"assignment-2/config"
 	"assignment-2/database"
+	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -34,7 +35,7 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 			handleRegHeadRequest(w, r, id)
 		default:
 			http.Error(w,
-				fmt.Sprintf("Method %s not supported on /notifications/{id}", r.Method),
+				fmt.Sprintf("Method %s not supported on /registrations/{id}", r.Method),
 				http.StatusMethodNotAllowed)
 			return
 		}
@@ -49,7 +50,7 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 			handleRegHeadRequest(w, r, "")
 		default:
 			http.Error(w,
-				fmt.Sprintf("Method %s not supported on /notifications/", r.Method),
+				fmt.Sprintf("Method %s not supported on /registrations/", r.Method),
 				http.StatusMethodNotAllowed)
 			return
 		}
@@ -77,7 +78,7 @@ func handleRegGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
 	_, err = fmt.Fprintln(w, string(content))
 	if err != nil {
 		log.Println("Error while writing response body: " + err.Error())
-		http.Error(w, "There was am error while writing response body", http.StatusInternalServerError)
+		http.Error(w, "There was an error while writing response body", http.StatusInternalServerError)
 		return
 	}
 }
@@ -145,6 +146,14 @@ func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Retrieve the new registration and trigger webhooks for REGISTER
+	newReg, err := database.GetOneRegistration(id)
+	if err != nil {
+		log.Println("Error retrieving newly added registration: ", err)
+	} else if newReg != nil {
+		services.TriggerWebhooks("REGISTER", newReg.IsoCode)
+	}
+
 	// Create the response struct
 	resp := map[string]string{
 		"id":         id,
@@ -197,6 +206,14 @@ func handleRegPutRequest(w http.ResponseWriter, r *http.Request, id string) {
 	err = database.UpdateRegistration(id, dashboard)
 	if err != nil {
 		http.Error(w, "Could not update dashboard with id: "+id, http.StatusInternalServerError)
+		return
+	}
+
+	updateReg, err := database.GetOneRegistration(id)
+	if err != nil {
+		log.Println("Error retrieving updated registration", err)
+	} else if updateReg != nil {
+		services.TriggerWebhooks("CHANGE", updateReg.IsoCode)
 	}
 
 	// Return status code to indicate success
@@ -210,11 +227,21 @@ func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	err := database.DeleteRegistration(id)
+	// Retrieve registrations to be deleted (for iso code)
+	existingReg, err := database.GetOneRegistration(id)
+	if err != nil {
+		log.Println("Error retrieving registration with id ", id, ": ", err)
+		http.Error(w, "Registration was not found", http.StatusNotFound)
+		return
+	}
+
+	err = database.DeleteRegistration(id)
 	if err != nil {
 		http.Error(w, "There was an error trying to delete that dashboard..", http.StatusInternalServerError)
 		return
 	}
+
+	services.TriggerWebhooks("DELETE", existingReg.IsoCode)
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -260,6 +287,7 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	if err != nil {
 		log.Println("Error retrieving registration with id " + id + ": " + err.Error())
 		http.Error(w, "There was an error retrieving registration with id "+id, http.StatusInternalServerError)
+		return
 	}
 
 	// Extract original data into a indexable map
@@ -267,6 +295,7 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	if err != nil {
 		log.Println("Error marshalling payload: " + err.Error())
 		http.Error(w, "There was an error patching registration", http.StatusInternalServerError)
+		return
 	}
 
 	var originalData map[string]interface{}
@@ -274,34 +303,57 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	if err != nil {
 		log.Println("Error unmarshalling payload: " + err.Error())
 		http.Error(w, "There was an error patching registration", http.StatusInternalServerError)
+		return
 	}
 
-	// If firebase returned data and conversion to map was successful
-	if originalData != nil {
-		// Chek if new country is provided, and update if it is
-		if originalData["country"] != nil {
-			originalData["country"] = patchData["country"]
-		}
-		// Check if isocode is provided, and update if it is
-		if originalData["isoCode"] != nil {
-			originalData["isoCode"] = patchData["isoCode"]
-		}
+	// Merge country and isoCode values from the incoming patch with original data
+	// Country - If patchData contains a non-empty country, that value is used,
+	// otherwise the existing country value is used
+	mergedCountry := ""
+	if patchVal, ok := patchData["country"].(string); ok && patchVal != "" {
+		mergedCountry = patchVal
+	} else if origVal, ok := originalData["country"].(string); ok {
+		mergedCountry = origVal
+	}
 
-		// Check if both country and isoCode is empty
-		if originalData["country"] == "" && patchData["isoCode"] == "" {
-			http.Error(w, "Both country code and isoCode cannot be empty", http.StatusBadRequest)
+	// Also done for iso-code
+	mergedIsoCode := ""
+	if patchVal, ok := patchData["isoCode"].(string); ok && patchVal != "" {
+		mergedIsoCode = patchVal
+	} else if origVal, ok := originalData["isoCode"].(string); ok {
+		mergedIsoCode = origVal
+	}
+
+	// If both are empty, an error is returned.
+	if mergedCountry == "" && mergedIsoCode == "" {
+		http.Error(w, "Both country code and isoCode cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	// Save the original values into the originalData map
+	originalData["country"] = mergedCountry
+	originalData["isoCode"] = mergedIsoCode
+
+	// Check if incoming patch contains a features field
+	if patchVal, exists := patchData["features"]; exists {
+		// attempt to assert that the value of features is a map
+		patchFeatures, ok := patchVal.(map[string]interface{})
+		if !ok {
+			http.Error(w, "Invalid format for features", http.StatusBadRequest)
 			return
 		}
-
-		if originalData["features"] != nil {
-			// Extract features
-			patchFeatures := patchData["features"].(map[string]interface{})
-			originalFeatures := originalData["features"].(map[string]interface{})
-
-			// Loop through sent patch features and update original
-			for key, value := range patchFeatures {
-				originalFeatures[key] = value
+		// check if original data has a features field
+		if origVal, exists := originalData["features"]; exists {
+			if origFeatures, ok := origVal.(map[string]interface{}); ok {
+				for key, value := range patchFeatures {
+					origFeatures[key] = value
+				}
+				originalData["features"] = origFeatures
+			} else {
+				originalData["features"] = patchFeatures
 			}
+		} else {
+			originalData["features"] = patchFeatures
 		}
 	}
 
@@ -312,16 +364,25 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	if err != nil {
 		log.Println("Error marshalling payload: " + err.Error())
 		http.Error(w, "There was an error patching registration", http.StatusInternalServerError)
+		return
 	}
 
 	var updatedData utils.DashboardPost
 	err = json.Unmarshal(originalDataJson, &updatedData)
-
 	//Patch with request body
+	if err != nil {
+		log.Println("Error unmarshalling updated data: " + err.Error())
+		http.Error(w, "Error processing updated data", http.StatusInternalServerError)
+		return
+	}
+
 	err = database.UpdateRegistration(id, updatedData)
 	if err != nil {
-		http.Error(w, "Could not patch dashboard with id: "+id+"\nMake sure all fields are valid fields", http.StatusInternalServerError)
+		http.Error(w, "Could not patch registration with id: "+id+"\nMake sure all fields are valid fields", http.StatusInternalServerError)
+		return
 	}
+
+	services.TriggerWebhooks("CHANGE", updatedData.IsoCode)
 
 	// Return status code to indicate success
 	w.WriteHeader(http.StatusNoContent)
