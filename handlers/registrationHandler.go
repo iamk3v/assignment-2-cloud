@@ -135,7 +135,7 @@ func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "There was an error unmarshalling payload", http.StatusInternalServerError)
 		return
 	}
-	dashboard.LastChange = time.Now()
+	dashboard.LastChange = time.Now().Local()
 
 	// Add the dashboard to DB
 	id, err := database.AddRegistration(dashboard)
@@ -148,7 +148,7 @@ func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 	// Create the response struct
 	resp := map[string]string{
 		"id":         id,
-		"lastChange": dashboard.LastChange.Format(time.RFC3339),
+		"lastChange": dashboard.LastChange.String(),
 	}
 
 	// Response
@@ -192,7 +192,7 @@ func handleRegPutRequest(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	// Update timestamp
-	dashboard.LastChange = time.Now()
+	dashboard.LastChange = time.Now().Local()
 
 	err = database.UpdateRegistration(id, dashboard)
 	if err != nil {
@@ -306,7 +306,7 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	// Update timestamp
-	originalData["lastChange"] = time.Now()
+	originalData["lastChange"] = time.Now().Local()
 
 	originalDataJson, err := json.Marshal(originalData)
 	if err != nil {
