@@ -2,7 +2,6 @@ package database
 
 import (
 	"assignment-2/utils"
-	"cloud.google.com/go/firestore"
 	"errors"
 	"google.golang.org/api/iterator"
 	"log"
@@ -10,7 +9,7 @@ import (
 
 const collection = "dashboards"
 
-func AddRegistration(dash utils.Dashboard) (string, error) {
+func AddRegistration(dash utils.DashboardPost) (string, error) {
 	// Adding the document to firestore
 	ref, _, err := Client.Collection(collection).Add(Ctx, dash)
 	if err != nil {
@@ -35,7 +34,7 @@ func DeleteRegistration(id string) error {
 	return nil
 }
 
-func UpdateRegistration(id string, dash utils.Dashboard) error {
+func UpdateRegistration(id string, dash utils.DashboardPost) error {
 
 	// Overwrite the document
 	_, err := Client.Collection(collection).Doc(id).Set(Ctx, dash)
@@ -46,51 +45,28 @@ func UpdateRegistration(id string, dash utils.Dashboard) error {
 	return nil
 }
 
-func PatchRegistration(id string, patchData map[string]interface{}) error {
-
-	// Define the firebase update array
-	var updates []firestore.Update
-
-	// Go through the patchData sent in request
-	for path, value := range patchData {
-		updates = append(updates, firestore.Update{
-			Path:  path,
-			Value: value,
-		})
-	}
-
-	// Update the documents with the firebase update array
-	_, err := Client.Collection(collection).Doc(id).Update(Ctx, updates)
-	if err != nil {
-		log.Println("Error updating document with id: " + id + ": " + err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func GetOneRegistration(id string) (utils.Dashboard, error) {
+func GetOneRegistration(id string) (*utils.Dashboard, error) {
 	// Find the document with specified id
 	res := Client.Collection(collection).Doc(id)
 
 	// Get the document
 	doc, err := res.Get(Ctx)
-
 	if err != nil {
+		log.Println("hei")
 		log.Println("Error extracting body of returned document of dashboard " + id + ": " + err.Error())
-		return utils.Dashboard{}, err
+		return nil, err
 	}
 
 	// Convert the firebase document into a dashboard struct
 	var dashboard utils.Dashboard
 	err = doc.DataTo(&dashboard)
 	if err != nil {
-		return utils.Dashboard{}, err
+		return nil, err
 	}
 
 	dashboard.Id = doc.Ref.ID
 
-	return dashboard, nil
+	return &dashboard, nil
 }
 
 func GetAllRegistrations() ([]utils.Dashboard, error) {
