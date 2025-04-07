@@ -11,6 +11,14 @@ func CreateWebhook(hook utils.Webhook) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	// Update the document to include its generated ID.
+	updateData := map[string]interface{}{
+		"id": docRef.ID,
+	}
+	_, err = docRef.Set(Ctx, updateData, firestore.MergeAll)
+	if err != nil {
+		return "", err
+	}
 	return docRef.ID, nil
 }
 

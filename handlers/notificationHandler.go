@@ -167,7 +167,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 		originalData[key] = value
 	}
 
-	originalData["lastChange"] = time.Now().Format(time.RFC3339)
+	originalData["lastChange"] = time.Now().Local()
 
 	// Update the webhook document in Firestore using the UpdateWebhook function.
 	err = database.UpdateWebhook(id, originalData)
