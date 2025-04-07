@@ -26,6 +26,8 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 			handleNotiDeleteRequest(w, r, id)
 		case http.MethodPatch:
 			handleNotiPatchRequest(w, r, id)
+		case http.MethodHead:
+			handleNotiHeadRequest(w, r, id)
 		default:
 			http.Error(w,
 				fmt.Sprintf("Method %s not supported on /notifications/{id}", r.Method),
@@ -38,6 +40,8 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 			handleNotiGetAllRequest(w, r)
 		case http.MethodPost:
 			handleNotiPostRequest(w, r)
+		case http.MethodHead:
+			handleNotiHeadRequest(w, r, "")
 		default:
 			http.Error(w,
 				fmt.Sprintf("Method %s not supported on /notifications/", r.Method),
@@ -178,4 +182,33 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 
 	// Return no content to indicate success.
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func handleNotiHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
+
+	if id == "" { // No ID provided
+		// Get all webhooks
+		_, err := database.GetAllWebhooks()
+		if err != nil {
+			log.Println("Error retrieving webhooks:", err)
+			http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
+			return
+		}
+
+		// Set and send back headers
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
+
+	} else { // ID provided
+		_, err := database.GetWebhook(id)
+		if err != nil {
+			log.Println("Error retrieving webhook:", err)
+			http.Error(w, config.ERR_NOT_FOUND, http.StatusNotFound)
+			return
+		}
+
+		// Set and send back headers
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
+	}
 }
