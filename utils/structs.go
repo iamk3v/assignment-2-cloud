@@ -1,7 +1,5 @@
 package utils
 
-import "time"
-
 type Statusresponse struct {
 	CountriesAPI         int    `firestore:"countriesAPI" json:"countriesAPI"`
 	CurrencyAPI          int    `firestore:"currencyAPI" json:"currencyAPI"`
@@ -14,18 +12,18 @@ type Statusresponse struct {
 }
 
 type DashboardPost struct {
-	Country    string    `firestore:"country" json:"country"`
-	IsoCode    string    `firestore:"isoCode" json:"isoCode"`
-	Features   Features  `firestore:"features" json:"features"`
-	LastChange time.Time `firestore:"lastChange" json:"lastChange"`
+	Country    string   `firestore:"country" json:"country"`
+	IsoCode    string   `firestore:"isoCode" json:"isoCode"`
+	Features   Features `firestore:"features" json:"features"`
+	LastChange string   `firestore:"lastChange" json:"lastChange"`
 }
 
 type Dashboard struct {
-	Id         string    `firestore:"id" json:"id"`
-	Country    string    `firestore:"country" json:"country"`
-	IsoCode    string    `firestore:"isoCode" json:"isoCode"`
-	Features   Features  `firestore:"features" json:"features"`
-	LastChange time.Time `firestore:"lastChange" json:"lastChange"`
+	Id         string   `firestore:"id" json:"id"`
+	Country    string   `firestore:"country" json:"country"`
+	IsoCode    string   `firestore:"isoCode" json:"isoCode"`
+	Features   Features `firestore:"features" json:"features"`
+	LastChange string   `firestore:"lastChange" json:"lastChange"`
 }
 type Features struct {
 	Temperature      bool     `firestore:"temperature" json:"temperature"`
