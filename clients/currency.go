@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetCurrencyRates(curency []string, countrycode string) ([]utils.CurrencyResponse, error) {
+func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIResult, error) {
 	url := config.CURRENCY_ROOT + countrycode
 
 	resp, err := http.Get(url)
@@ -29,8 +29,10 @@ func GetCurrencyRates(curency []string, countrycode string) ([]utils.CurrencyRes
 
 	// Define response struct to match the JSON
 	var apiResponse struct {
-		BaseCode string             `json:"base_code"`
-		Rates    map[string]float64 `json:"rates"`
+		BaseCode          string             `json:"base_code"`
+		TimeLastUpdateUTC string             `json:"time_last_update_utc"`
+		TimeNextUpdateUTC string             `json:"time_next_update_utc"`
+		Rates             map[string]float64 `json:"rates"`
 	}
 
 	if err := json.Unmarshal(body, &apiResponse); err != nil {
@@ -51,6 +53,11 @@ func GetCurrencyRates(curency []string, countrycode string) ([]utils.CurrencyRes
 		})
 	}
 
-	return fullcurrencydata, nil
+	return &utils.CurrencyAPIResult{
+		BaseCode:          apiResponse.BaseCode,
+		TimeLastUpdateUTC: apiResponse.TimeLastUpdateUTC,
+		TimeNextUpdateUTC: apiResponse.TimeNextUpdateUTC,
+		Rates:             fullcurrencydata,
+	}, nil
 
 }

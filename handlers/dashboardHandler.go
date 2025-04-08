@@ -122,7 +122,7 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Currency
 	if len(features.TargetCurrencies) > 0 {
 		for currency := range currencyCode {
-			rates, err := clients.GetCurrencyRates(features.TargetCurrencies, currencyCode[currency])
+			result, err := clients.GetCurrencyRates(features.TargetCurrencies, currencyCode[currency])
 			if err != nil {
 				http.Error(w, "Currency API failed", http.StatusBadGateway)
 				return
@@ -134,14 +134,14 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 
 			existingGroups := featuresMap["targetCurrencies"].([]utils.GroupedCurrencyRates)
 
-			base := currencyCode[currency] // e.g., "BND", "SGD"
+			//base := currencyCode[currency] // e.g., "BND", "SGD"
 
 			groupExists := false
 
 			// Check if group exists
 			for i, group := range existingGroups {
-				if group.BaseCode == base {
-					existingGroups[i].Rates = append(existingGroups[i].Rates, rates...)
+				if group.BaseCode == result.BaseCode {
+					existingGroups[i].Rates = append(existingGroups[i].Rates, result.Rates...)
 					groupExists = true
 					break
 				}
@@ -149,8 +149,10 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 
 			if !groupExists {
 				existingGroups = append(existingGroups, utils.GroupedCurrencyRates{
-					BaseCode: base,
-					Rates:    rates,
+					BaseCode:               result.BaseCode,
+					TimeLastCurrencyUpdate: result.TimeLastUpdateUTC,
+					TimeNextCurrencyUpdate: result.TimeNextUpdateUTC,
+					Rates:                  result.Rates,
 				})
 			}
 

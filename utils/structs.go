@@ -84,12 +84,20 @@ type Coordinates struct {
 	Longitude string `json:"longitude"`
 }
 
+type CurrencyAPIResult struct {
+	BaseCode          string
+	TimeLastUpdateUTC string
+	TimeNextUpdateUTC string
+	Rates             []CurrencyResponse
+}
 type CurrencyResponse struct {
 	Code string  `json:"code"`
 	Rate float64 `json:"rate"`
 }
 
 type GroupedCurrencyRates struct {
-	BaseCode string             `json:"base_code"`
-	Rates    []CurrencyResponse `json:"rates"`
+	BaseCode               string             `json:"base_code"`
+	TimeLastCurrencyUpdate string             `json:"time_last_update_utc"`
+	TimeNextCurrencyUpdate string             `json:"time_next_update_utc"`
+	Rates                  []CurrencyResponse `json:"rates"`
 }
