@@ -15,7 +15,8 @@ import (
 )
 
 /*
-DashboardHandler Handles GET requests for a populated dashboard
+DashboardHandler Handles requests sent to the /dashboards endpoint, routing the request to
+corresponding handle functions based on http methods.
 */
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	basePath := config.START_URL + "/dashboards/"
@@ -42,8 +43,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-handleDashGetRequest gets configuration, fetches external data and
-sends the dashboard response
+handleDashGetRequest gets configuration, fetches external data and sends the dashboard response
 */
 func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 
@@ -63,7 +63,7 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Get country info from the REST Countries API
 	countryData, err := clients.GetCountryData(country, isoCode)
 	if err != nil {
-		log.Println("failed to fetch country data:" + err.Error())
+		log.Println("failed to fetch country data: " + err.Error())
 		http.Error(w, "Failed to fetch country data", http.StatusBadGateway)
 		return
 	}
@@ -172,11 +172,14 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Send the final response
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Println("Error encoding response", err)
+		log.Println("Error encoding response: " + err.Error())
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }
 
+/*
+handleDashHeadRequest Handles HEAD requests sent to the dashboard handler
+*/
 func handleDashHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Get one dashboard
 	rawContent, err := database.GetOneRegistration(id)

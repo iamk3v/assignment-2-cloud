@@ -22,8 +22,9 @@ const (
 	ERR_NOT_FOUND             = "Not found"
 	ERR_INTERNAL_SERVER_ERROR = "Internal server error"
 	ERR_BAD_REQUEST           = "Bad request"
-	// Fill in with more as we go
 )
 
 // Database
 const PROJECT_ID = "assignment-2-279db"
+const DASHBOARD_COLLECTION = "dashboards"
+const NOTIFICATION_COLLECTION = "webhooks"

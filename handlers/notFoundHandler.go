@@ -7,6 +7,9 @@ import (
 	"strconv"
 )
 
+/*
+NotFoundHandler Handles all requests to endpoints that does not yet exist.
+*/
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	_, err := fmt.Fprintf(w, strconv.Itoa(http.StatusNotFound)+" - "+http.StatusText(http.StatusNotFound)+

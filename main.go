@@ -15,7 +15,7 @@ func main() {
 
 	//start uptime timer
 	utils.StartTime()
-	log.Println("Uptime timer started:", utils.Gettime())
+	log.Println("Uptime timer started:", utils.GetTime())
 
 	// Create a new router
 	router := http.NewServeMux()

@@ -11,7 +11,7 @@ import (
 )
 
 /*
-Statushandler routes HTTP requests to the appropriate status method handler
+StatusHandler routes HTTP requests to the appropriate status method handler
 */
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -58,7 +58,7 @@ func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 		Dashboardresponse:    dashStatusCode,
 		Webhookssum:          totalHooks,
 		Version:              config.VERSION,
-		Uptime:               utils.Gettime(),
+		Uptime:               utils.GetTime(),
 	}
 
 	// Convert response to JSON and send to client
@@ -67,7 +67,7 @@ func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 
 	//sends response to client
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Print("Error encoding status response: ", err)
+		log.Print("Error encoding status response: " + err.Error())
 		http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 		return
 	}
@@ -77,7 +77,7 @@ func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 func checkAPI(apiurl string) int {
 	resp, err := http.Get(apiurl)
 	if err != nil {
-		fmt.Println("error checking apiURL:", apiurl, err)
+		fmt.Println("error checking apiURL " + apiurl + ": " + err.Error())
 		return 0
 	}
 	defer resp.Body.Close()

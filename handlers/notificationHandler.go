@@ -62,7 +62,7 @@ It fetches all webhooks from the database and returns them in JSON format.
 func handleNotiGetAllRequest(w http.ResponseWriter, r *http.Request) {
 	hooks, err := database.GetAllWebhooks()
 	if err != nil {
-		log.Println("Error retrieving webhooks:", err)
+		log.Println("Error retrieving webhooks: " + err.Error())
 		http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 		return
 	}
@@ -77,7 +77,7 @@ It fetches the webhook identified by the provided id and returns it as JSON.
 func handleNotiGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
 	hook, err := database.GetWebhook(id)
 	if err != nil {
-		log.Println("Error retrieving webhook:", err)
+		log.Println("Error retrieving webhook: " + err.Error())
 		http.Error(w, config.ERR_NOT_FOUND, http.StatusNotFound)
 		return
 	}
@@ -93,13 +93,13 @@ the new webhook's ID along with an HTTP cat URL as JSON.
 func handleNotiPostRequest(w http.ResponseWriter, r *http.Request) {
 	var hook utils.Webhook
 	if err := json.NewDecoder(r.Body).Decode(&hook); err != nil {
-		log.Println("Error decoding webhook body:", err)
+		log.Println("Error decoding webhook body: " + err.Error())
 		http.Error(w, config.ERR_BAD_REQUEST, http.StatusBadRequest)
 		return
 	}
 	id, err := database.CreateWebhook(hook)
 	if err != nil {
-		log.Println("Error creating webhook:", err)
+		log.Println("Error creating webhook: " + err.Error())
 		http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 		return
 	}
@@ -119,11 +119,11 @@ It deletes the webhook identified by id from the database and returns a 204 No C
 func handleNotiDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 	err := database.DeleteWebhook(id)
 	if err != nil {
-		log.Println("Error deleting webhook:", err)
+		log.Println("Error deleting webhook: " + err.Error())
 		http.Error(w, config.ERR_NOT_FOUND, http.StatusNotFound)
 		return
 	}
-	log.Println("Deleted webhook:", id)
+	log.Println("Deleted webhook: " + id)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -148,7 +148,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Read the request body.
 	content, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println("Error reading request body:", err)
+		log.Println("Error reading request body: " + err.Error())
 		http.Error(w, "Reading payload failed.", http.StatusInternalServerError)
 		return
 	}
@@ -163,7 +163,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	var patchData map[string]interface{}
 	err = json.Unmarshal(content, &patchData)
 	if err != nil {
-		log.Println("Error unmarshalling payload:", err)
+		log.Println("Error unmarshalling payload: " + err.Error())
 		http.Error(w, "There was an error unmarshalling payload", http.StatusInternalServerError)
 		return
 	}
@@ -171,7 +171,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Retrieve the existing webhook from Firestore.
 	existingHook, err := database.GetWebhook(id)
 	if err != nil {
-		log.Println("Error retrieving webhook with id", id, ":", err)
+		log.Println("Error retrieving webhook with id " + id + ": " + err.Error())
 		http.Error(w, "Error retrieving webhook with id "+id, http.StatusInternalServerError)
 		return
 	}
@@ -179,7 +179,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Marshal the existing webhook to JSON, then unmarshal into a map.
 	existingJSON, err := json.Marshal(existingHook)
 	if err != nil {
-		log.Println("Error marshalling existing webhook:", err)
+		log.Println("Error marshalling existing webhook: " + err.Error())
 		http.Error(w, "Error patching webhook", http.StatusInternalServerError)
 		return
 	}
@@ -187,7 +187,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	var originalData map[string]interface{}
 	err = json.Unmarshal(existingJSON, &originalData)
 	if err != nil {
-		log.Println("Error unmarshalling existing webhook:", err)
+		log.Println("Error unmarshalling existing webhook: " + err.Error())
 		http.Error(w, "Error patching webhook", http.StatusInternalServerError)
 		return
 	}
@@ -221,7 +221,7 @@ func handleNotiHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 		// Get all webhooks
 		_, err := database.GetAllWebhooks()
 		if err != nil {
-			log.Println("Error retrieving webhooks:", err)
+			log.Println("Error retrieving webhooks: " + err.Error())
 			http.Error(w, config.ERR_INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			return
 		}
@@ -233,7 +233,7 @@ func handleNotiHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 	} else { // ID provided
 		_, err := database.GetWebhook(id)
 		if err != nil {
-			log.Println("Error retrieving webhook:", err)
+			log.Println("Error retrieving webhook: " + err.Error())
 			http.Error(w, config.ERR_NOT_FOUND, http.StatusNotFound)
 			return
 		}

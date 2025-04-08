@@ -12,6 +12,9 @@ import (
 var Client *firestore.Client
 var Ctx context.Context
 
+/*
+init initializes the firebase client
+*/
 func init() {
 	var err error
 	Client, err = initDatabase()
@@ -20,6 +23,9 @@ func init() {
 	}
 }
 
+/*
+initDatabase initializes the firebase app, client and content, returns the client object
+*/
 func initDatabase() (*firestore.Client, error) {
 	Ctx = context.Background()
 	// get the credentials from file

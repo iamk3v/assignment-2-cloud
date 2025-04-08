@@ -1,13 +1,14 @@
 package database
 
 import (
+	"assignment-2/config"
 	"assignment-2/utils"
 	"cloud.google.com/go/firestore"
 )
 
 // CreateWebhook stores a new webhook in Firestore
 func CreateWebhook(hook utils.Webhook) (string, error) {
-	docRef, _, err := Client.Collection("webhooks").Add(Ctx, hook)
+	docRef, _, err := Client.Collection(config.NOTIFICATION_COLLECTION).Add(Ctx, hook)
 	if err != nil {
 		return "", err
 	}
@@ -24,7 +25,7 @@ func CreateWebhook(hook utils.Webhook) (string, error) {
 
 // GetWebhook retrieves a single webhook by ID
 func GetWebhook(id string) (*utils.Webhook, error) {
-	docSnap, err := Client.Collection("webhooks").Doc(id).Get(Ctx)
+	docSnap, err := Client.Collection(config.NOTIFICATION_COLLECTION).Doc(id).Get(Ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func GetWebhook(id string) (*utils.Webhook, error) {
 // GetAllWebhooks retrieves all webhooks
 func GetAllWebhooks() ([]utils.Webhook, error) {
 	var hooks []utils.Webhook
-	iter := Client.Collection("webhooks").Documents(Ctx)
+	iter := Client.Collection(config.NOTIFICATION_COLLECTION).Documents(Ctx)
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -57,13 +58,13 @@ func GetAllWebhooks() ([]utils.Webhook, error) {
 
 // DeleteWebhook deletes a single webhook
 func DeleteWebhook(id string) error {
-	_, err := Client.Collection("webhooks").Doc(id).Delete(Ctx)
+	_, err := Client.Collection(config.NOTIFICATION_COLLECTION).Doc(id).Delete(Ctx)
 	return err
 }
 
 // UpdateWebhook updates an existing webhook document by merging the provided data.
 func UpdateWebhook(id string, updatedData map[string]interface{}) error {
 	// The MergeAll option will update only the fields provided in updatedData.
-	_, err := Client.Collection("webhooks").Doc(id).Set(Ctx, updatedData, firestore.MergeAll)
+	_, err := Client.Collection(config.NOTIFICATION_COLLECTION).Doc(id).Set(Ctx, updatedData, firestore.MergeAll)
 	return err
 }

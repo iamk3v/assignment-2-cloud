@@ -16,9 +16,9 @@ type CacheEntry struct {
 }
 
 const (
-	// Firestore collection for cahcing
+	// Firestore collection for caching
 	cacheCollection = "cache"
-	// How long a cache entry is valid. Set to 10 hours.
+	// CacheExpiration How long a cache entry is valid. Set to 10 hours.
 	CacheExpiration = 10 * time.Hour
 )
 
@@ -67,7 +67,7 @@ func IsCacheValid(entry *CacheEntry) bool {
 }
 
 /*
-getCachedData Retrieves the cached data with a key and unmarshals it into dest
+GetCachedData Retrieves the cached data with a key and unmarshals it into dest
 */
 func GetCachedData(key string, dest interface{}) error {
 	entry, err := GetCacheEntry(key)

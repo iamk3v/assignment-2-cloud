@@ -1,17 +1,19 @@
 package database
 
 import (
+	"assignment-2/config"
 	"assignment-2/utils"
 	"errors"
 	"google.golang.org/api/iterator"
 	"log"
 )
 
-const collection = "dashboards"
-
+/*
+AddRegistration Adds a specific registration in Firestore by ID
+*/
 func AddRegistration(dash utils.DashboardPost) (string, error) {
 	// Adding the document to firestore
-	ref, _, err := Client.Collection(collection).Add(Ctx, dash)
+	ref, _, err := Client.Collection(config.DASHBOARD_COLLECTION).Add(Ctx, dash)
 	if err != nil {
 		log.Println("Error adding document to Firestore: " + err.Error())
 		return "", err
@@ -24,7 +26,7 @@ func AddRegistration(dash utils.DashboardPost) (string, error) {
 DeleteRegistration Deletes a specific registration in Firestore by ID.
 */
 func DeleteRegistration(id string) error {
-	_, err := Client.Collection(collection).Doc(id).Delete(Ctx)
+	_, err := Client.Collection(config.DASHBOARD_COLLECTION).Doc(id).Delete(Ctx)
 	if err != nil {
 		log.Println("Error deleting document with id " + id + ": " + err.Error())
 		return err
@@ -34,10 +36,13 @@ func DeleteRegistration(id string) error {
 	return nil
 }
 
+/*
+UpdateRegistration Updates a specific registration in Firestore by ID
+*/
 func UpdateRegistration(id string, dash utils.DashboardPost) error {
 
 	// Overwrite the document
-	_, err := Client.Collection(collection).Doc(id).Set(Ctx, dash)
+	_, err := Client.Collection(config.DASHBOARD_COLLECTION).Doc(id).Set(Ctx, dash)
 	if err != nil {
 		log.Println("Error updating document with id: " + id + ": " + err.Error())
 		return err
@@ -45,9 +50,12 @@ func UpdateRegistration(id string, dash utils.DashboardPost) error {
 	return nil
 }
 
+/*
+GetOneRegistration Gets a specific registration in Firestore by ID
+*/
 func GetOneRegistration(id string) (*utils.Dashboard, error) {
 	// Find the document with specified id
-	res := Client.Collection(collection).Doc(id)
+	res := Client.Collection(config.DASHBOARD_COLLECTION).Doc(id)
 
 	// Get the document
 	doc, err := res.Get(Ctx)
@@ -69,9 +77,12 @@ func GetOneRegistration(id string) (*utils.Dashboard, error) {
 	return &dashboard, nil
 }
 
+/*
+GetAllRegistrations Gets all currently stored registrations from Firestore
+*/
 func GetAllRegistrations() ([]utils.Dashboard, error) {
 	// Iterator through all documents
-	iter := Client.Collection(collection).Documents(Ctx)
+	iter := Client.Collection(config.DASHBOARD_COLLECTION).Documents(Ctx)
 	var allDashboards []utils.Dashboard
 
 	for {

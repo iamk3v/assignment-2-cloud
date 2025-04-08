@@ -35,16 +35,6 @@ type Features struct {
 	TargetCurrencies []string `firestore:"targetCurrencies" json:"targetCurrencies"`
 }
 
-type Featureseponse struct {
-	Temperature      float64          `firestore:"temperature" json:"temperature"`
-	Precipitation    float64          `firestore:"precipitation" json:"precipitation"`
-	Capital          string           `firestore:"capital" json:"capital"`
-	Coordinates      Coordinates      `firestore:"coordinates" json:"coordinates"`
-	Population       int              `firestore:"population" json:"population"`
-	Area             string           `firestore:"area" json:"area"`
-	CurrencyResponse CurrencyResponse `firestore:"targetCurrencies" json:"targetCurrencies"`
-}
-
 type Webhook struct {
 	ID      string `firestore:"id" json:"id"`
 	URL     string `firestore:"url" json:"url"`

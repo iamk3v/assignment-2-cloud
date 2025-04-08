@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func TriggerWebhooks(event string, country string) {
 	// Retrieve all webhooks from the database
 	hooks, err := database.GetAllWebhooks()
 	if err != nil {
-		log.Println("Error retrieving webhooks: ", err)
+		log.Println("Error retrieving webhooks: " + err.Error())
 		return
 	}
 
@@ -37,7 +38,7 @@ func TriggerWebhooks(event string, country string) {
 			// Payload to JSON
 			payloadBytes, err := json.Marshal(payload)
 			if err != nil {
-				log.Println("Error marshalling webhook payload: ", err)
+				log.Println("Error marshalling webhook payload: " + err.Error())
 				continue
 			}
 
@@ -46,13 +47,13 @@ func TriggerWebhooks(event string, country string) {
 				// Send a post request with the webhook URL
 				resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 				if err != nil {
-					log.Println("Error triggering webhook at: ", url, ":", err)
+					log.Println("Error triggering webhook at: " + url + ": " + err.Error())
 					return
 				}
 
 				// Log it with the HTTP status code
 				defer resp.Body.Close()
-				log.Println("Webhook triggered at: %s, status code: %s", url, resp.StatusCode)
+				log.Println("Webhook triggered at: " + url + ", status code: " + strconv.Itoa(resp.StatusCode))
 			}(hook.URL, payloadBytes)
 		}
 	}

@@ -10,7 +10,10 @@ import (
 	"testing"
 )
 
-// TestNotificationHandler_Post creates a new webhook and checks that a valid ID is returned.
+/*
+TestNotificationHandler_Post creates a new webhook and checks that a valid ID is returned,
+expected result: ok
+*/
 func TestNotificationHandler_Post(t *testing.T) {
 	// Create a POST request with a valid JSON payload.
 	payload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`
@@ -47,7 +50,10 @@ func TestNotificationHandler_Post(t *testing.T) {
 	}
 }
 
-// TestNotificationHandler_Get creates a webhook, retrieves it using its ID, and verifies the result.
+/*
+TestNotificationHandler_Get creates a webhook, retrieves it using its ID,
+and verifies the result, expected result: ok
+*/
 func TestNotificationHandler_Get(t *testing.T) {
 	// Create a webhook using POST.
 	postPayload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`
@@ -99,7 +105,10 @@ func TestNotificationHandler_Get(t *testing.T) {
 	}
 }
 
-// TestNotificationHandler_Delete creates a webhook, deletes it, then confirms it can no longer be retrieved.
+/*
+TestNotificationHandler_Delete  creates a webhook, deletes it, then confirms it can no longer be retrieved,
+expected result: ok
+*/
 func TestNotificationHandler_Delete(t *testing.T) {
 	// Create a webhook via POST.
 	payload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`
@@ -148,7 +157,10 @@ func TestNotificationHandler_Delete(t *testing.T) {
 	}
 }
 
-// TestNotificationHandler_Patch tests the PATCH endpoint for updating an existing webhook.
+/*
+TestNotificationHandler_Patch tests the PATCH endpoint for updating an existing webhook,
+expected result: ok
+*/
 func TestNotificationHandler_Patch(t *testing.T) {
 	// Create a webhook via POST.
 	postPayload := `{"url": "https://example.com/webhook", "country": "NO", "event": "REGISTER"}`

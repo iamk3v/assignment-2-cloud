@@ -111,7 +111,7 @@ docker compose build
 /dashboard/v1/notifications/
 /dashboard/v1/status/
 ```
-### Endpoint 'Registrations'
+### Endpoint '/Registrations'
 
 #### - Request (POST)
 ```
@@ -190,7 +190,7 @@ Path: /dashboard/v1/registrations/
   - Returns an array of all dashboard configurations.
 
 
-- **Request:**
+- **Example Request:**
   - `/dashboard/v1/registrations/`
 
 
@@ -324,7 +324,7 @@ Path: /dashboard/v1/registrations/{id}
     - Body: empty
 
 
-### Endpoint 'Dashboards'
+### Endpoint '/Dashboards'
 
 
 #### - Request (GET)
@@ -382,7 +382,7 @@ Path: /dashboard/v1/dashboards/{id}
     "lastRetrieval": "2025-04-08T13:33:40+02:00"
 }
 
-### Endpoint 'Notifications'
+### Endpoint '/Notifications'
 
 
 #### - Request (POST)
@@ -393,6 +393,7 @@ Content type: application/json
 ```
 - **Description:**
   - Registers a new webhook to be invoked when a specific event occurs.
+  - Note: Country is optional and can be left blank to be notified on events for ALL country codes
 
 
 - **Example Request Body:**
@@ -405,7 +406,7 @@ Content type: application/json
 
 - **Response:**
   - Status code: 201 Created
-      ```json
+  ```json
     {
       "httpCat": "https://http.cat/201",
       "id": "d7i0baIRFVRS6RB5vCJZ"
@@ -442,7 +443,7 @@ Path: /dashboard/v1/notifications/
   - Retrieves an array of all registered webhooks.
 
 
-- **Request:**
+- **Example Request:**
     - `/dashboard/v1/notifications/`
 
 
@@ -519,7 +520,7 @@ Path: /dashboard/v1/notifications/{id}
   - Returns 204 No Content
   - Body: empty
 
-### Endpoint 'Status'
+### Endpoint '/Status'
 
 
 #### - Request (GET)

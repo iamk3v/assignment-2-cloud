@@ -6,12 +6,17 @@ import (
 	"time"
 )
 
-// logs the time on start
+/*
+StartTime initiates the Starttime global variable
+*/
 func StartTime() {
 	config.Starttime = time.Now()
 }
 
-func Gettime() string {
+/*
+GetTime Gets the time and formats it to human-readable
+*/
+func GetTime() string {
 	uptime := time.Since(config.Starttime)
 	days := int(uptime.Hours()) / 24
 	hours := int(uptime.Hours()) % 24

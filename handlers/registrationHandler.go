@@ -14,6 +14,10 @@ import (
 	"time"
 )
 
+/*
+RegistrationHandler Handles requests sent to the /registrations endpoint, routing the request to
+corresponding handle functions based on http methods and if ID was sent or not.
+*/
 func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 	basePath := config.START_URL + "/registrations/"
 	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
@@ -286,7 +290,7 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	dbData, err := database.GetOneRegistration(id)
 	if err != nil {
 		log.Println("Error retrieving registration with id " + id + ": " + err.Error())
-		http.Error(w, "There was an error retrieving registration with id "+id, http.StatusInternalServerError)
+		http.Error(w, "There was an error retrieving registration with id "+id, http.StatusNotFound)
 		return
 	}
 

@@ -10,7 +10,9 @@ import (
 	"testing"
 )
 
-// Function creates a test to get one spesific dashboard, expect ok
+/*
+TestGetOne creates a test to get one spesific dashboard, expected result: ok
+*/
 func TestGetOne(t *testing.T) {
 	testId := "sSzvOGs4zEuRPPCbwyVT"
 	req := httptest.NewRequest(http.MethodGet, config.START_URL+"/registrations/"+testId, nil)
@@ -65,7 +67,9 @@ func TestGetOne(t *testing.T) {
 	}
 }
 
-// Function creates a test to get all dashboards, expect ok
+/*
+TestGetAll creates a test to get all dashboards, expected result: ok
+*/
 func TestGetAll(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, config.START_URL+"/registrations/", nil)
 	w := httptest.NewRecorder()
