@@ -30,6 +30,9 @@ func main() {
 	router.HandleFunc(config.START_URL+"/status/", handlers.StatusHandler)
 	router.HandleFunc(config.START_URL+"/status", handlers.StatusHandler)
 
+	//Handle all 404 if no match found
+	router.HandleFunc("/", handlers.NotFoundHandler)
+
 	// Define port
 	PORT := "8080"
 	if os.Getenv("PORT") != "" {
