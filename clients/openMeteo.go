@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 )
 
@@ -57,5 +58,6 @@ func Average(numbers []float64) float64 {
 		mean = sum / float64(len(numbers))
 	}
 
-	return mean
+	// Round to 2 decimal places
+	return math.Round(mean*100) / 100
 }
