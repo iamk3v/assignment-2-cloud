@@ -18,9 +18,9 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 	basePath := config.START_URL + "/registrations/"
 	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
 	parts := strings.Split(trimmedPath, "/")
-	id := parts[0]
 
-	if trimmedPath != "" || len(parts) >= 1 && id != "" {
+	if len(parts) == 1 && parts[0] != "" {
+		id := parts[0]
 		// ID provided
 		switch r.Method {
 		case http.MethodGet:

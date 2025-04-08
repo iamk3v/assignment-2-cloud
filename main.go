@@ -22,9 +22,13 @@ func main() {
 
 	// Routes
 	router.HandleFunc(config.START_URL+"/registrations/", handlers.RegistrationHandler)
+	router.HandleFunc(config.START_URL+"/registrations", handlers.RegistrationHandler)
 	router.HandleFunc(config.START_URL+"/dashboards/", handlers.DashboardHandler)
+	router.HandleFunc(config.START_URL+"/dashboards", handlers.DashboardHandler)
 	router.HandleFunc(config.START_URL+"/notifications/", handlers.NotificationHandler)
+	router.HandleFunc(config.START_URL+"/notifications", handlers.NotificationHandler)
 	router.HandleFunc(config.START_URL+"/status/", handlers.StatusHandler)
+	router.HandleFunc(config.START_URL+"/status", handlers.StatusHandler)
 
 	// Define port
 	PORT := "8080"
