@@ -22,8 +22,8 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	trimmedPath := strings.TrimPrefix(r.URL.Path, basePath)
 	parts := strings.Split(trimmedPath, "/")
 	id := parts[0]
-	// Check if ID is provided
 
+	// Check if ID is provided
 	if len(parts) < 1 || id == "" {
 		http.Error(w, "Dashboard ID not provided", http.StatusBadRequest)
 		return
@@ -42,7 +42,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-handleDashGetRequest Extracts the dashboard ID, gets configuration, fetches external data and
+handleDashGetRequest gets configuration, fetches external data and
 sends the dashboard response
 */
 func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
@@ -72,6 +72,11 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 	for code := range countryData.Currencies {
 		currencyCode = append(currencyCode, code)
 	}
+	// Check if no currency codes were found
+	if len(currencyCode) == 0 {
+		http.Error(w, "no currency codes found for country", http.StatusInternalServerError)
+		return
+	}
 
 	// Get weather info from the Open-Meteo API
 	weatherData, err := clients.GetWeatherDate(countryData.Latlng[0], countryData.Latlng[1])
@@ -83,15 +88,13 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 	tempAverage := clients.Average(weatherData.Daily.Temperature)
 	precAverage := clients.Average(weatherData.Daily.Precipitation)
 
-	// Assemble the features based on the configuration
+	// Assemble the features based on the configuration in the database
 	featuresMap := make(map[string]interface{})
 
-	// Capital
 	if features.Capital {
 		featuresMap["capital"] = countryData.Capital
 	}
 
-	// Coordinates
 	if features.Coordinates {
 		featuresMap["coordinates"] = map[string]float64{
 			"latitude":  countryData.Latlng[0],
@@ -99,29 +102,25 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 		}
 	}
 
-	// Population
 	if features.Population {
 		featuresMap["population"] = countryData.Population
 	}
 
-	// Area
 	if features.Area {
 		featuresMap["area"] = countryData.Area
 	}
 
-	// Temperature
 	if features.Temperature {
 		featuresMap["temperature"] = tempAverage
 	}
 
-	// Precipitation
 	if features.Precipitation {
 		featuresMap["precipitation"] = precAverage
 	}
 
-	// Currency
 	if len(features.TargetCurrencies) > 0 {
 		for currency := range currencyCode {
+			//get currency data from the currency API
 			result, err := clients.GetCurrencyRates(features.TargetCurrencies, currencyCode[currency])
 			if err != nil {
 				http.Error(w, "Currency API failed", http.StatusBadGateway)
@@ -134,11 +133,9 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 
 			existingGroups := featuresMap["targetCurrencies"].([]utils.GroupedCurrencyResponse)
 
-			//base := currencyCode[currency] // e.g., "BND", "SGD"
-
 			groupExists := false
 
-			// Check if group exists
+			// Check if group exists, and if exits it becomes an array
 			for i, group := range existingGroups {
 				if group.BaseCode == result.BaseCode {
 					existingGroups[i].Rates = append(existingGroups[i].Rates, result.Rates...)
@@ -147,6 +144,7 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 				}
 			}
 
+			//if group dosnt exist create feature dashboard
 			if !groupExists {
 				existingGroups = append(existingGroups, utils.GroupedCurrencyResponse{
 					BaseCode:               result.BaseCode,
