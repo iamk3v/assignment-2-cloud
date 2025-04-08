@@ -95,7 +95,7 @@ type CurrencyResponse struct {
 	Rate float64 `json:"rate"`
 }
 
-type GroupedCurrencyRates struct {
+type GroupedCurrencyResponse struct {
 	BaseCode               string             `json:"base_code"`
 	TimeLastCurrencyUpdate string             `json:"time_last_update_utc"`
 	TimeNextCurrencyUpdate string             `json:"time_next_update_utc"`

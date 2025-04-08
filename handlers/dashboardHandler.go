@@ -129,10 +129,10 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 			}
 			// Initialize if needed to avoid panic
 			if featuresMap["targetCurrencies"] == nil {
-				featuresMap["targetCurrencies"] = []utils.GroupedCurrencyRates{}
+				featuresMap["targetCurrencies"] = []utils.GroupedCurrencyResponse{}
 			}
 
-			existingGroups := featuresMap["targetCurrencies"].([]utils.GroupedCurrencyRates)
+			existingGroups := featuresMap["targetCurrencies"].([]utils.GroupedCurrencyResponse)
 
 			//base := currencyCode[currency] // e.g., "BND", "SGD"
 
@@ -148,7 +148,7 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 			}
 
 			if !groupExists {
-				existingGroups = append(existingGroups, utils.GroupedCurrencyRates{
+				existingGroups = append(existingGroups, utils.GroupedCurrencyResponse{
 					BaseCode:               result.BaseCode,
 					TimeLastCurrencyUpdate: result.TimeLastUpdateUTC,
 					TimeNextCurrencyUpdate: result.TimeNextUpdateUTC,
