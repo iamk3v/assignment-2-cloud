@@ -10,13 +10,15 @@ import (
 	"testing"
 )
 
+// Function creates a test to get one spesific dashboard, expect ok
 func TestGetOne(t *testing.T) {
-	id := "FoVoLL4aeKvilKON3Wjl"
-	req := httptest.NewRequest(http.MethodGet, config.START_URL+"/registrations/"+id, nil)
+	testId := "sSzvOGs4zEuRPPCbwyVT"
+	req := httptest.NewRequest(http.MethodGet, config.START_URL+"/registrations/"+testId, nil)
 	w := httptest.NewRecorder()
 
 	RegistrationHandler(w, req) // Directly call the handler
 
+	// Get the response
 	resp := w.Result()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -33,9 +35,10 @@ func TestGetOne(t *testing.T) {
 		t.Fatalf("Error unmarshalling response body: %v", err)
 	}
 
+	// Build the expected struct
 	expected := utils.Dashboard{
-		Id:      "FoVoLL4aeKvilKON3Wjl",
-		Country: "Sweden",
+		Id:      "sSzvOGs4zEuRPPCbwyVT",
+		Country: "Norway",
 		IsoCode: "",
 		Features: utils.Features{
 			Temperature:      true,
@@ -48,6 +51,7 @@ func TestGetOne(t *testing.T) {
 		},
 	}
 
+	// Test a few attributes to see if they are expected
 	if expected.Id != gotten.Id {
 		t.Errorf("Expected ID %s, got ID %s", expected.Id, gotten.Id)
 	}
@@ -61,12 +65,14 @@ func TestGetOne(t *testing.T) {
 	}
 }
 
+// Function creates a test to get all dashboards, expect ok
 func TestGetAll(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, config.START_URL+"/registrations/", nil)
 	w := httptest.NewRecorder()
 
 	RegistrationHandler(w, req) // Directly call the handler
 
+	// Get the response
 	resp := w.Result()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
