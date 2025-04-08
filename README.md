@@ -1,93 +1,556 @@
-# assignment-2
+# Countries Dashboard Service
+
+This project is an implementation of a RESTful web service built in Go for Assignment 2 of PROG2005. It enables clients to configure and retrieve dynamically populated dashboards with country data, register webhooks for notifications, and monitor service status. The service uses Firestore for persistent storage, integrates with external APIs (for country, weather, and currency data), and includes caching with periodic purging of cached data.
+
+## Contributors
+- Marius: Registrations, Testing and Stub
+- Mathias: Notifications, Firebase and Testing
+- Sebastian: Dashboard & Status
+- Johannes: Caching, Purging and Clients
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Setup & Installation](#setup--installation)
+- [Running the Application](#run-the-application)
+- [API Endpoints](#api-endpoints)
+- [Caching and Purging](#caching-and-purging)
+- [Testing](#testing)
+- [Deployment](#deployment)
+
+## Overview
+
+The Countries Dashboard Service allows users to:
+
+- **Configure Dashboard Information**  
+  Register, update, retrieve, and delete dashboard configurations containing country details, weather data, and currency exchange rates.
+
+- **Retrieve Populated Dashboards**  
+  Combine data from external APIs (REST Countries, Open Meteo, Currency API) based on a configuration, presenting the enriched dashboard.
+
+- **Manage Notifications via Webhooks**  
+  Register, update, retrieve, and delete webhooks that trigger notifications on events (REGISTER, CHANGE, DELETE, INVOKE).
+
+- **Monitor Service Status**  
+  Check the health of external APIs, view the number of registered webhooks, and monitor service uptime.
+
+- **Caching**  
+  Cache external API responses in Firestore and automatically purge stale cache entries using a configured TTL.
+
+## Features
+
+- **Registration Endpoints:**  
+  Create, read, update, and delete dashboard configurations.
+- **Dashboard Endpoint:**  
+  Retrieve dashboards with addition of external API data.
+- **Notification Endpoints:**  
+  Manage webhook registrations and trigger notifications on specific events.
+- **Status Endpoint:**  
+  Provide system health information including external API statuses and uptime.
+- **Caching:**  
+  Implement caching for external API responses.
+- **Testing:**  
+  Comprehensive endpoint tests using Go’s `httptest` package.
+
+### Additional Features
+
+- **Purging of Cached Data**
+- **`PATCH` method on `/notifications/` and `/registrations/`**
+- **`HEAD` method on `/notifications/` and `/registrations/`**
+- **Timezone Information in any time representation**
+
+
+## Setup & Installation
+
+### Prerequisites
+
+- **Go:** Version 1.24.1 or higher.
+- **Firestore:** A Google Cloud Firestore project with a service account JSON file placed at `config/service-account.json`
+- **Docker (Optional):** For containerized deployment.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2025-workspace/sebasama/assignment-2.git
+```
+### 2. Install Dependencies
+```bash
+go mod tidy
+```
+### 3. Configure Environment
+- Place Firestore service account JSON file at `config/service-account.json`.
+- Optionally, set the `PORT` environment variable (default 8080).
+
+## Run the Application
+#### Using Go:
+```bash
+go run main.go
+```
+#### Using Docker:
+```bash
+docker compose build
+```
+-   #### Attached:
+    ```bash
+    docker compose up assignment-2
+    ```
+-   #### Detached:
+    ```bash
+    docker compose up assignment-2 -d
+    ```
+-   #### Stop service:
+    ```bash
+    docker compose down assignment-2 
+    ```
+
+## API-endpoints
+```
+/dashboard/v1/registrations/
+/dashboard/v1/dashboards/
+/dashboard/v1/notifications/
+/dashboard/v1/status/
+```
+### Endpoint 'Registrations'
+
+#### - Request (POST)
+```
+Method: POST
+Path: /dashboard/v1/registrations/
+Content type: application/json
+```
+- **Description:**  
+  - Registers a new dashboard configuration indicating which country details and features should be displayed on the dashboard.
+
+
+- **Example Request Body:**
+  ```json
+  {
+    "country": "Norway",
+    "isoCode": "NO",
+    "features": {
+      "temperature": true,
+      "precipitation": true,
+      "capital": true,
+      "coordinates": true,
+      "population": true,
+      "area": false,
+      "targetCurrencies": ["EUR", "USD", "SEK"]
+    }
+  }
+  
+- **Response:**
+    ```json
+  {
+  "id": "v9KIhCCocXgSPwLg8UWN",
+  "lastChange": "2025-04-08 12:37:09.4366611 +0200 CEST"
+  }
+#### - Request (GET)
+```
+Method: GET
+Path: /dashboard/v1/registrations/{id}
+Content type: application/json
+```
+- **Description:**  
+  - Retrieves the complete dashboard configuration corresponding to the provided ID.
+
+
+- **Example Request:**
+  - `/dashboard/v1/registrations/v9KIhCCocXgSPwLg8UWN/`
+
+
+- **Response:**
+    ```json 
+  {
+    "id": "v9KIhCCocXgSPwLg8UWN",
+    "country": "Norway",
+    "isoCode": "NO",
+    "features": {
+        "temperature": true,
+        "precipitation": true,
+        "capital": true,
+        "coordinates": true,
+        "population": true,
+        "area": false,
+        "targetCurrencies": [
+            "EUR",
+            "USD",
+            "SEK"
+        ]
+    },
+    "lastChange": "2025-04-08 12:37:09.4366611 +0200 CEST"
+  }
+
+#### - Request (GET)
+```
+Method: GET
+Path: /dashboard/v1/registrations/
+```
+- **Description:**  
+  - Returns an array of all dashboard configurations.
+
+
+- **Request:**
+  - `/dashboard/v1/registrations/`
+
+
+- **Response:**
+    ```json 
+  [
+    {
+        "id": "Dq8PjJfuPVQT8YEq8Ms4",
+        "country": "Norway",
+        "isoCode": "NO",
+        "features": {
+            "temperature": true,
+            "precipitation": true,
+            "capital": true,
+            "coordinates": true,
+            "population": true,
+            "area": false,
+            "targetCurrencies": [
+                "EUR",
+                "USD",
+                "SEK"
+            ]
+        },
+        "lastChange": "2025-04-08 12:30:46.9248986 +0200 CEST"
+    },
+    {
+        "id": "Gzt5covH1vt8y3QVtnan",
+        "country": "NO",
+        "isoCode": "",
+        "features": {
+            "temperature": false,
+            "precipitation": false,
+            "capital": false,
+            "coordinates": false,
+            "population": false,
+            "area": false,
+            "targetCurrencies": null
+        },
+        "lastChange": "2025-04-08 12:29:57.1243472 +0200 CEST"
+    },
+    ...
 
 
 
-## Getting started
+#### - Request (PUT)
+```
+Method: PUT
+Path: /dashboard/v1/registrations/{id}
+```
+- **Description:**  
+  - Replaces the entire dashboard configuration identified by the provided ID and updates lastChange timestamp. 
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **Example Request Body:**
+    ```json
+    {
+    "country": "Norway",
+    "isoCode": "NO",
+    "features": {
+      "temperature": false,
+      "precipitation": true,
+      "capital": true,
+      "coordinates": true,
+      "population": true,
+      "area": false,
+      "targetCurrencies": ["EUR", "SEK"]
+      }
+  }
 
-## Add your files
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+
+- **Response:**
+  - Returns 204 No Content
+  - Body: empty
+
+#### - Request (PATCH)
+```
+Method: PATCH
+Path: /dashboard/v1/registrations/{id}
+Content type: application/json
+```
+- **Description:**
+  - Partially updates the dashboard configuration, modifying only the provided fields and automatically updating the lastChange timestamp.
+
+
+- **Example Request Body:**
+    ```json
+    {
+    "features": {
+      "temperature": false
+        }
+  }
+
+- **Response:**
+    - Returns 204 No Content
+    - Body: empty
+
+#### - Request (HEAD)
+**Note:** For HEAD requests, the ID parameter is optional. When no ID is provided, the request applies to the entire collection.
 
 ```
-cd existing_repo
-git remote add origin https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2025-workspace/sebasama/assignment-2.git
-git branch -M main
-git push -uf origin main
+Method: HEAD
+Path: /dashboard/v1/registrations/{id}
 ```
+- **Description:**
+  -   Retrieves only the headers for the dashboard configuration with the specified ID. This can be used to verify the existence of the resource and inspect its metadata, without returning body.
 
-## Integrate with your tools
 
-- [ ] [Set up project integrations](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2025-workspace/sebasama/assignment-2/-/settings/integrations)
+- **Example Request:**
+  - `/dashboard/v1/registrations/v9KIhCCocXgSPwLg8UWN/`
 
-## Collaborate with your team
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+- **Response:**
+  - Returns 204 No Content
 
-## Test and Deploy
+#### - Request (DELETE)
+```
+Method: DELETE
+Path: /dashboard/v1/registrations/{id}
+```
+- **Description:**
+  - Deletes the dashboard configuration identified by the provided ID.
 
-Use the built-in continuous integration in GitLab.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- **Example Request:**
+    - `/dashboard/v1/registrations/v9KIhCCocXgSPwLg8UWN/`
 
-***
 
-# Editing this README
+- **Response:**
+    - Returns 204 No Content
+    - Body: empty
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
 
-## Suggestions for a good README
+### Endpoint 'Dashboards'
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
 
-## Name
-Choose a self-explaining name for your project.
+#### - Request (GET)
+```
+Method: GET
+Path: /dashboard/v1/dashboards/{id}
+```
+- **Description:**
+  - Retrieves a populated dashboard identified by the provided ID.
+  
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+- **Example Request:**
+    - `/dashboard/v1/dashboards/v9KIhCCocXgSPwLg8UWN/`
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- **Response:**
+    ```json
+  {
+    "country": "Norway",
+    "features": {
+        "area": 323802,
+        "capital": [
+            "Oslo"
+        ],
+        "coordinates": {
+            "latitude": 62,
+            "longitude": 10
+        },
+        "population": 5379475,
+        "precipitation": 10.428571428571429,
+        "targetCurrencies": [
+            {
+                "base_code": "NOK",
+                "time_last_update_utc": "Mon, 07 Apr 2025 00:02:31 +0000",
+                "time_next_update_utc": "Tue, 08 Apr 2025 00:23:41 +0000",
+                "rates": [
+                    {
+                        "code": "EUR",
+                        "rate": 0.084486
+                    },
+                    {
+                        "code": "USD",
+                        "rate": 0.092858
+                    },
+                    {
+                        "code": "SEK",
+                        "rate": 0.929191
+                    }
+                ]
+            }
+        ],
+        "temperature": 2.457142857142857
+    },
+    "isoCode": "NO",
+    "lastRetrieval": "2025-04-08T13:33:40+02:00"
+}
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Endpoint 'Notifications'
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+#### - Request (POST)
+```
+Method: POST
+Path: /dashboard/v1/notifications/
+Content type: application/json
+```
+- **Description:**
+  - Registers a new webhook to be invoked when a specific event occurs.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+- **Example Request Body:**
+    ```json
+  {
+  "url": "https://localhost:8080/client/",
+  "country": "NO",
+  "event": "INVOKE"
+  }
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+- **Response:**
+  - Status code: 201 Created
+      ```json
+    {
+      "httpCat": "https://http.cat/201",
+      "id": "d7i0baIRFVRS6RB5vCJZ"
+    }
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+#### - Request (GET)
+```
+Method: GET
+Path: /dashboard/v1/notifications/{id}
+```
+- **Description:**
+  - Retrieves the details of a specific webhook registration.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
 
-## License
-For open source projects, say how it is licensed.
+- **Example Request:**
+  - `/dashboard/v1/notifications/NDDWIy5TM6kaaAYvIN6E/`
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+
+- **Response:**
+    ```json
+  {
+    "id": "NDDWIy5TM6kaaAYvIN6E",
+    "url": "https://localhost:8080/client/",
+    "country": "NO",
+    "event": "INVOKE"
+  }
+
+#### - Request (GET)
+```
+Method: GET
+Path: /dashboard/v1/notifications/
+```
+- **Description:**
+  - Retrieves an array of all registered webhooks.
+
+
+- **Request:**
+    - `/dashboard/v1/notifications/`
+
+
+- **Response:**
+    ```json
+  [
+      {
+        "id": "0MwxWRziYlRIANVbmcdh",
+        "url": "https://example.com/webhook",
+        "country": "NO",
+        "event": "REGISTER"
+      },
+      {
+        "id": "7DjSRD7FXUjRXVATFGtL",
+        "url": "test.com",
+        "country": "NO",
+        "event": "REGISTER"
+      },
+      ...
+  ]
+#### - Request (PATCH)
+```
+Method: PATCH
+Path: /dashboard/v1/notifications/{id}
+Content type: application/json
+```
+- **Description:**
+  - Partially updates webhook registration identified by provided ID, and automatically sets a new lastChange timestamp.
+
+
+- **Example Request Body:**
+    ```json
+  {
+  "country": "NO",
+  "url": "https://updated-example.com/webhook"
+  }
+
+- **Response:**
+  - Returns 204 No Content
+  - Body: empty
+
+#### - Request (HEAD)
+**Note:** For HEAD requests, the ID parameter is optional. When no ID is provided, the request applies to the entire collection.
+
+```
+Method: HEAD
+Path: /dashboard/v1/notifications/{id}
+```
+- **Description:**
+  -   Retrieves only the headers for the dashboard configuration with the specified ID. This can be used to verify the existence of the resource and inspect its metadata, without returning body.
+
+
+- **Example Request:**
+  - `/dashboard/v1/notifications/NDDWIy5TM6kaaAYvIN6E/`
+
+
+- **Response:**
+  - Returns 204 No Content
+
+#### - Request (DELETE)
+```
+Method: DELETE
+Path: /dashboard/v1/notifications/{id}
+```
+- **Description:**
+  - Deletes the webhook registration identified by the provided ID.
+
+  
+- **Example Request:**
+  - `/dashboard/v1/notifications/NDDWIy5TM6kaaAYvIN6E/`
+
+
+- **Response:**
+  - Returns 204 No Content
+  - Body: empty
+
+### Endpoint 'Status'
+
+
+#### - Request (GET)
+```
+Method: GET
+Path: /dashboard/v1/status/
+```
+- **Description:**
+  - Returns the overall system status, including the HTTP status codes for external APIs (REST Countries, Open Meteo, Currency API), the number of registered webhooks, the service version, and the uptime.
+
+
+- **Request:**
+  - `/dashboard/v1/status/`
+
+
+- **Response:** 
+  - Content type: application/json
+  - Status code: 200 if OK
+
+      ```json
+    {
+      "countriesAPI": 200,
+      "currencyAPI": 200,
+      "openmeteoAPI": 200,
+      "notificationresponse": 200,
+      "dashboardresponse": 200,
+      "webhookssum": 13,
+      "version": "v1",
+      "uptime": "0d:02h:33m:38s"
+    }
+
+## Caching and Purging
+## Testing
+## Deployment

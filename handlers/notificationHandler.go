@@ -13,6 +13,11 @@ import (
 	"time"
 )
 
+/*
+NotificationHandler handles requests to the /notifications endpoint.
+It routes the request to the appropriate sub-handler based on whether an ID
+is provided in the URL and the HTTP method used.
+*/
 func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	// /dashboard/v1/notifications/{id} or /dashboard/v1/notifications/
 	pathParts := strings.Split(strings.TrimPrefix(r.URL.Path, config.START_URL+"/notifications"), "/")
@@ -50,6 +55,10 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+handleNotiGetAllRequest handles GET requests to retrieve all webhook registrations.
+It fetches all webhooks from the database and returns them in JSON format.
+*/
 func handleNotiGetAllRequest(w http.ResponseWriter, r *http.Request) {
 	hooks, err := database.GetAllWebhooks()
 	if err != nil {
@@ -61,6 +70,10 @@ func handleNotiGetAllRequest(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(hooks)
 }
 
+/*
+handleNotiGetOneRequest handles GET requests for a specific webhook registration.
+It fetches the webhook identified by the provided id and returns it as JSON.
+*/
 func handleNotiGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
 	hook, err := database.GetWebhook(id)
 	if err != nil {
@@ -72,6 +85,11 @@ func handleNotiGetOneRequest(w http.ResponseWriter, r *http.Request, id string) 
 	json.NewEncoder(w).Encode(hook)
 }
 
+/*
+handleNotiPostRequest handles POST requests to create a new webhook registration.
+It decodes the webhook from the request body, stores it in the database, and returns
+the new webhook's ID along with an HTTP cat URL as JSON.
+*/
 func handleNotiPostRequest(w http.ResponseWriter, r *http.Request) {
 	var hook utils.Webhook
 	if err := json.NewDecoder(r.Body).Decode(&hook); err != nil {
@@ -94,6 +112,10 @@ func handleNotiPostRequest(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+/*
+handleNotiDeleteRequest handles DELETE requests to remove a webhook registration.
+It deletes the webhook identified by id from the database and returns a 204 No Content status.
+*/
 func handleNotiDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 	err := database.DeleteWebhook(id)
 	if err != nil {
@@ -105,7 +127,11 @@ func handleNotiDeleteRequest(w http.ResponseWriter, r *http.Request, id string) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// handleNotiPatchRequest processes PATCH requests to update a webhook partially.
+/*
+handleNotiPatchRequest processes PATCH requests to update a webhook registration partially.
+It reads the request body, merges the provided patch data with the existing webhook data,
+updates the lastChange timestamp, and writes the updated document to the database.
+*/
 func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// Check if ID is provided
 	if id == "" {
@@ -171,7 +197,7 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 		originalData[key] = value
 	}
 
-	originalData["lastChange"] = time.Now().Local()
+	originalData["lastChange"] = time.Now().Local().String()
 
 	// Update the webhook document in Firestore using the UpdateWebhook function.
 	err = database.UpdateWebhook(id, originalData)
@@ -184,6 +210,11 @@ func handleNotiPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+/*
+handleNotiHeadRequest processes HEAD requests for webhook registrations.
+For a specific webhook (by ID), it retrieves the document and returns only the headers.
+If no ID is provided, it applies to the entire collection of webhooks.
+*/
 func handleNotiHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 
 	if id == "" { // No ID provided

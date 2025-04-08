@@ -416,7 +416,7 @@ func handleRegHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 		rawContent, err := database.GetOneRegistration(id)
 		if err != nil {
 			log.Println("Error retrieving registration with id " + id + ": " + err.Error())
-			http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusInternalServerError)
+			http.Error(w, "There was an error getting the dashboard with id: "+id, http.StatusNotFound)
 			return
 		}
 
