@@ -2,6 +2,7 @@ package clients
 
 import (
 	"assignment-2/config"
+	"assignment-2/database"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -9,7 +10,23 @@ import (
 	"net/http"
 )
 
+/*
+GetCurrencyRates Retrieves the currency API result from cache or the external API
+*/
 func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIResult, error) {
+	// Create a unique cache key via the country code
+	cacheKey := fmt.Sprintf("currency_%s", countrycode)
+
+	var result utils.CurrencyAPIResult
+
+	// Retrieve cached data
+	if err := database.GetCachedData(cacheKey, &result); err == nil {
+		fmt.Printf("Cache hit for key: %s\n", cacheKey)
+		return &result, nil
+	}
+	fmt.Printf("Cache miss for key: %s", cacheKey)
+
+	// Build the API url
 	url := config.CURRENCY_ROOT + countrycode
 
 	resp, err := http.Get(url)
@@ -22,6 +39,7 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 		return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
 	}
 
+	// Read the body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read API response: %w", err)
@@ -54,12 +72,18 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 		})
 	}
 
-	//returns data as seperate variables
-	return &utils.CurrencyAPIResult{
+	// Creating the result
+	result = utils.CurrencyAPIResult{
 		BaseCode:          apiResponse.BaseCode,
 		TimeLastUpdateUTC: apiResponse.TimeLastUpdateUTC,
 		TimeNextUpdateUTC: apiResponse.TimeNextUpdateUTC,
 		Rates:             fullcurrencydata,
-	}, nil
+	}
 
+	// Cache the result for future calls with the same key
+	if err := database.SetCacheEntry(cacheKey, result); err != nil {
+		fmt.Printf("Failed to cache data for key %s: %v\n", cacheKey, err)
+	}
+
+	return &result, nil
 }

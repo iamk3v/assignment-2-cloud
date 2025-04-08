@@ -81,3 +81,5 @@ func GetCachedData(key string, dest interface{}) error {
 	// Unmarshal the JSON stored in the cache to the destination
 	return json.Unmarshal([]byte(entry.Data), dest)
 }
+
+// Cache purging
