@@ -41,6 +41,7 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 
 	var fullcurrencydata []utils.CurrencyResponse
 
+	//extracts the currency rates based on the currency code
 	for _, code := range curency {
 		rate, exists := apiResponse.Rates[code]
 		if !exists {
@@ -53,6 +54,7 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 		})
 	}
 
+	//returns data as seperate variables
 	return &utils.CurrencyAPIResult{
 		BaseCode:          apiResponse.BaseCode,
 		TimeLastUpdateUTC: apiResponse.TimeLastUpdateUTC,
