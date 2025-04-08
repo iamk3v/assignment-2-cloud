@@ -69,7 +69,7 @@ func IsCacheValid(entry *CacheEntry) bool {
 /*
 getCachedData Retrieves the cached data with a key and unmarshals it into dest
 */
-func getCachedData(key string, dest interface{}) error {
+func GetCachedData(key string, dest interface{}) error {
 	entry, err := GetCacheEntry(key)
 	if err != nil {
 		return err
