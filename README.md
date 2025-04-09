@@ -12,12 +12,13 @@ This project is an implementation of a RESTful web service built in Go for Assig
 
 - [Overview](#overview)
 - [Features](#features)
+- [Deployment](#deployment)
 - [Setup & Installation](#setup--installation)
 - [Running the Application](#run-the-application)
 - [API Endpoints](#api-endpoints)
 - [Caching and Purging](#caching-and-purging)
 - [Testing](#testing)
-- [Deployment](#deployment)
+
 
 ## Overview
 
@@ -61,7 +62,7 @@ The Countries Dashboard Service allows users to:
 - **Timezone Information in any time representation**
 
 ## Deployment
-The service is hosted on NTNUs Openstack instance [here](http://10.212.170.198:8080)
+The service is hosted on NTNUs Openstack instance [here](http://10.212.170.198:8080)   
 Documentation for NTNUs Openstack can be found [here](https://www.ntnu.no/wiki/display/skyhigh)
 - The service is deployed on a VM running Linux
 - The service is containerized through Docker Compose for easy deployment and scaling
@@ -561,6 +562,35 @@ Path: /dashboard/v1/status/
     }
 
 ## Caching and Purging
+
+This project has implemented caching and purging mechanisms with the goal of minimizing
+the number for external API calls, reduce latency and avoid hitting rate limits. The service
+also purges expired cache entries to maintain and clear up the cache as well as to reduce storage usage.
+
+### Overview
+The service stores the external APIs responses in a dedicated Firestore collection called 
+`cache`. Each of the cache entries contains:
+- A unique key (constructed from the input parameters, e.g. country code or lat. long.)
+- The data (stored in JSON as a string)
+- A timestamp (indicating when the data was cached)
+
+### Cache expiration
+Cache entries are valid for a set duration, currently set to 10 hours. If an entry is older
+than the expiration period, it is considered expired. A new cache entry is made with each call to the 
+external APIs if there currently is no valid cache entries.
+As an advanced feature, when data is used (from the cache), the service triggers a webhook notification
+(via the event CACHE_HIT). This allows clients or monitoring systems to be notified whenever data is used from cache.
+
+### Purging
+To avoid keeping stale data, expired entries are purged (deleted) from the cache-collection on
+Firestore. The purging mechanism can be invoked:
+- On startup: Upon starting the service, all cache entries older than 10 hours are purged when the service starts.
+- Periodically: A background goroutine runs on a timer (now set to every hour) to purge expired cache entries while
+the service is running.
+
+As an advanced feature, when data is purged (from the cache), the service triggers a webhook notification
+(via the event CACHE_PURGE). This allows clients or monitoring systems to be notified whenever data is purged.
+
 ## Testing
 
 This project uses Go's standard `testing` package to implement and execute unit tests.
