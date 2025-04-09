@@ -60,6 +60,11 @@ The Countries Dashboard Service allows users to:
 - **`HEAD` method on `/notifications/` and `/registrations/`**
 - **Timezone Information in any time representation**
 
+## Deployment
+The service is hosted on NTNUs Openstack instance [here](http://10.212.170.198:8080)
+Documentation for NTNUs Openstack can be found [here](https://www.ntnu.no/wiki/display/skyhigh)
+- The service is deployed on a VM running Linux
+- The service is containerized through Docker Compose for easy deployment and scaling
 
 ## Setup & Installation
 
@@ -80,6 +85,7 @@ go mod tidy
 ```
 ### 3. Configure Environment
 - Place Firestore service account JSON file at `config/service-account.json`.
+- Add your firestore project ID to the `PROJECT_ID` constant in `config/constants.go`
 - Optionally, set the `PORT` environment variable (default 8080).
 
 ## Run the Application
@@ -88,21 +94,23 @@ go mod tidy
 go run main.go
 ```
 #### Using Docker:
+> **Important!**
+> 
+> Make sure the firestore service credentials JSON file is present in the `config/`
+> folder before composing the image!
+
 ```bash
+# Compose the image
 docker compose build
+
+# Run the instance from the built image
+docker run -d -p 8080:8080 --name go-ing-nuclear-service assignment-2-cloud-go-ing-nuclear
+
 ```
--   #### Attached:
-    ```bash
-    docker compose up assignment-2
-    ```
--   #### Detached:
-    ```bash
-    docker compose up assignment-2 -d
-    ```
--   #### Stop service:
-    ```bash
-    docker compose down assignment-2 
-    ```
+#### Stop service:
+```bash
+docker stop go-ing-nuclear-service 
+```
 
 ## API-endpoints
 ```
@@ -554,4 +562,29 @@ Path: /dashboard/v1/status/
 
 ## Caching and Purging
 ## Testing
-## Deployment
+
+This project uses Go's standard `testing` package to implement and execute unit tests.
+Tests are organized within the codebase, particularly in the `handlers/` directory to verify 
+the functionality of HTTP handlers and related components.
+
+### Prerequisites
+- Before running the tests, ensure the following:
+- Go version >= 1.24.1 installed
+- The project dependencies are installed, use `go mod tidy` to install any missing dependencies.
+- A valid Firebase service account credentials file (service-account.json) is available in the `config/` directory
+
+> **NB!**
+>
+> The path to firebase credentials file on line 32 in `database/client.go`, `sa := option.WithCredentialsFile("config/service-account.json")`
+> has to be updated to `"../config/..."`
+>
+> This is due to different working directories when building the project versus running test.
+
+### Running tests
+Execute tests from the project root:
+```bash
+go test ./handlers
+
+# Verbose output
+go test ./handlers -v
+```
