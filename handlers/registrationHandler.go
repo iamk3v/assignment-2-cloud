@@ -3,7 +3,6 @@ package handlers
 import (
 	"assignment-2/config"
 	"assignment-2/database"
-	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -164,7 +163,7 @@ func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error retrieving newly added registration: ", err)
 	} else if newReg != nil {
-		services.TriggerWebhooks("REGISTER", newReg.IsoCode)
+		webhookTrigger.TriggerWebhooks("REGISTER", newReg.IsoCode)
 	}
 
 	// Create the response struct
@@ -229,7 +228,7 @@ func handleRegPutRequest(w http.ResponseWriter, r *http.Request, id string) {
 	if err != nil {
 		log.Println("Error retrieving updated registration", err)
 	} else if updateReg != nil {
-		services.TriggerWebhooks("CHANGE", updateReg.IsoCode)
+		webhookTrigger.TriggerWebhooks("CHANGE", updateReg.IsoCode)
 	}
 
 	// Return status code to indicate success
@@ -262,7 +261,7 @@ func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	// Trigger webhook for delete event
-	services.TriggerWebhooks("DELETE", existingReg.IsoCode)
+	webhookTrigger.TriggerWebhooks("DELETE", existingReg.IsoCode)
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -406,7 +405,7 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	services.TriggerWebhooks("CHANGE", updatedData.IsoCode)
+	webhookTrigger.TriggerWebhooks("CHANGE", updatedData.IsoCode)
 
 	// Return status code to indicate success
 	w.WriteHeader(http.StatusNoContent)

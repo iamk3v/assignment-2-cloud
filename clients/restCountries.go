@@ -3,7 +3,6 @@ package clients
 import (
 	"assignment-2/config"
 	"assignment-2/database"
-	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"errors"
@@ -39,9 +38,9 @@ func GetCountryData(name string, isoCode string) (*utils.CountryResponse, error)
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
 		// Trigger webhook notification for the cache hit
 		if isoCode != "" {
-			services.TriggerWebhooks("CACHE_HIT", isoCode)
+			webhookTrigger.TriggerWebhooks("CACHE_HIT", isoCode)
 		} else {
-			services.TriggerWebhooks("CACHE_HIT", name)
+			webhookTrigger.TriggerWebhooks("CACHE_HIT", name)
 		}
 		// Returns the first entry if successful
 		return &countryData[0], nil

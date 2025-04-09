@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"google.golang.org/api/iterator"
+	"time"
 )
 
 /*
@@ -24,6 +23,16 @@ const (
 	// CacheExpiration How long a cache entry is valid. Set to 10 hours.
 	CacheExpiration = 10 * time.Hour
 )
+
+type WebhookTrigger interface {
+	TriggerWebhooks(event string, country string)
+}
+
+var webhookTrigger WebhookTrigger
+
+func SetDBWebhookTrigger(trigger WebhookTrigger) {
+	webhookTrigger = trigger
+}
 
 /*
 GetCacheEntry Retrieves a cache entry using a key
@@ -115,5 +124,7 @@ func PurgeExpiredCacheEntries(ctx context.Context) error {
 		purgeCounter++
 	}
 	fmt.Printf("Purged %d cache entries\n", purgeCounter)
+	// Trigger webhook on cache purge
+	webhookTrigger.TriggerWebhooks("CACHE_PURGE", "")
 	return nil
 }

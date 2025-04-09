@@ -4,7 +4,6 @@ import (
 	"assignment-2/clients"
 	"assignment-2/config"
 	"assignment-2/database"
-	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -13,6 +12,16 @@ import (
 	"strings"
 	"time"
 )
+
+type WebhookTrigger interface {
+	TriggerWebhooks(event string, country string)
+}
+
+var webhookTrigger WebhookTrigger
+
+func SetHandlerWebhookTrigger(trigger WebhookTrigger) {
+	webhookTrigger = trigger
+}
 
 /*
 DashboardHandler Handles requests sent to the /dashboards endpoint, routing the request to
@@ -167,7 +176,7 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	// Trigger webhooks asynchronously
-	go services.TriggerWebhooks("INVOKE", isoCode)
+	go webhookTrigger.TriggerWebhooks("INVOKE", isoCode)
 
 	// Send the final response
 	w.Header().Set("Content-Type", "application/json")

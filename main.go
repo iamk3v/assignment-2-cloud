@@ -1,10 +1,12 @@
 package main
 
 import (
+	"assignment-2/clients"
 	"assignment-2/config"
 	"assignment-2/database"
 	_ "assignment-2/database"
 	"assignment-2/handlers"
+	"assignment-2/services"
 	"assignment-2/utils"
 	"log"
 	"net/http"
@@ -20,6 +22,11 @@ func main() {
 	//start uptime timer
 	utils.StartTime()
 	log.Println("Uptime timer started:", utils.GetTime())
+
+	// Set the webhook trigger implementation
+	database.SetDBWebhookTrigger(services.WebhookService{})
+	clients.SetClientWebhookTrigger(services.WebhookService{})
+	handlers.SetHandlerWebhookTrigger(services.WebhookService{})
 
 	// Purge cached entries at startup
 	if err := database.PurgeExpiredCacheEntries(database.Ctx); err != nil {

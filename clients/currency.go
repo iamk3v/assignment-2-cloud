@@ -3,7 +3,6 @@ package clients
 import (
 	"assignment-2/config"
 	"assignment-2/database"
-	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -11,12 +10,22 @@ import (
 	"net/http"
 )
 
+type WebhookTrigger interface {
+	TriggerWebhooks(event string, country string)
+}
+
+var webhookTrigger WebhookTrigger
+
+func SetClientWebhookTrigger(trigger WebhookTrigger) {
+	webhookTrigger = trigger
+}
+
 /*
 GetCurrencyRates Retrieves the currency API result from cache or the external API
 */
-func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIResult, error) {
+func GetCurrencyRates(currency []string, countryCode string) (*utils.CurrencyAPIResult, error) {
 	// Create a unique cache key via the country code
-	cacheKey := fmt.Sprintf("currency_%s", countrycode)
+	cacheKey := fmt.Sprintf("currency_%s", countryCode)
 
 	var result utils.CurrencyAPIResult
 
@@ -24,13 +33,13 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 	if err := database.GetCachedData(cacheKey, &result); err == nil {
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
 		// Trigger webhook event for cache hit
-		services.TriggerWebhooks("CACHE_HIT", countrycode)
+		webhookTrigger.TriggerWebhooks("CACHE_HIT", countryCode)
 		return &result, nil
 	}
 	fmt.Printf("Cache miss for key: %s", cacheKey)
 
 	// Build the API url
-	url := config.CURRENCY_ROOT + countrycode
+	url := config.CURRENCY_ROOT + countryCode
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -60,16 +69,16 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
 
-	var fullcurrencydata []utils.CurrencyResponse
+	var fullCurrencyData []utils.CurrencyResponse
 
 	//extracts the currency rates based on the currency code
-	for _, code := range curency {
+	for _, code := range currency {
 		rate, exists := apiResponse.Rates[code]
 		if !exists {
 			return nil, fmt.Errorf("currency code %s not found in API response", code)
 		}
 
-		fullcurrencydata = append(fullcurrencydata, utils.CurrencyResponse{
+		fullCurrencyData = append(fullCurrencyData, utils.CurrencyResponse{
 			Code: code,
 			Rate: rate,
 		})
@@ -80,7 +89,7 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 		BaseCode:          apiResponse.BaseCode,
 		TimeLastUpdateUTC: apiResponse.TimeLastUpdateUTC,
 		TimeNextUpdateUTC: apiResponse.TimeNextUpdateUTC,
-		Rates:             fullcurrencydata,
+		Rates:             fullCurrencyData,
 	}
 
 	// Cache the result for future calls with the same key

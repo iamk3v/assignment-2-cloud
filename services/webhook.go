@@ -12,11 +12,13 @@ import (
 	"time"
 )
 
+type WebhookService struct{}
+
 /*
 TriggerWebhooks Checks for registered webhooks that match the given event country and sends
 a post notification
 */
-func TriggerWebhooks(event string, country string) {
+func (WebhookService) TriggerWebhooks(event string, country string) {
 	// Convert the event to upper, making the match case-insensitive
 	event = strings.ToUpper(event)
 	country = strings.ToUpper(country)
