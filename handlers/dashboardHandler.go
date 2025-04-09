@@ -163,7 +163,7 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 		"country":       country,
 		"isoCode":       isoCode,
 		"features":      featuresMap,
-		"lastRetrieval": time.Now().Format(time.RFC3339),
+		"lastRetrieval": time.Now().Local().String(),
 	}
 
 	// Trigger webhooks asynchronously
