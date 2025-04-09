@@ -2,7 +2,7 @@
 
 # Countries Dashboard Service
 
-This project is an implementation of a RESTful web service built in Go for Assignment 2 of PROG2005. It enables clients to configure and retrieve dynamically populated dashboards with country data, register webhooks for notifications, and monitor service status. The service uses Firestore for persistent storage, integrates with external APIs (for country, weather, and currency data), and includes caching with periodic purging of cached data.
+This project is an implementation of a RESTful web service built in Go for Assignment 2 of PROG2005. It enables clients to configure and retrieve dynamically populated dashboards with country data, register webhooks for notifications, and monitor service status. The service uses Firestore for persistent storage, integrates with external APIs (for country, weather, and currency data), and includes caching with periodic purging of stale data.
 
 ## Workload and Communication
 In this project we have distributed the workload evenly, and worked across files together as a team, to great success.
@@ -68,7 +68,7 @@ The Countries Dashboard Service allows users to:
 - **`HEAD` method on `/notifications/` and `/registrations/`**
 - **Purging of Cached Data**
 - **Timezone Information in any time representation:**
-The use of `time.Now().Local().String()` to represent time.
+The use of `time.Now().Local().String()` to display timezone information.
 
 ## Deployment
 The service is hosted on NTNUs Openstack instance [here](http://10.212.170.198:8080)   
