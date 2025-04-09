@@ -1,3 +1,5 @@
+<img src="https://i.imgur.com/IjWwrkP.png" alt="logo" width="300" height="300">
+
 # Countries Dashboard Service
 
 This project is an implementation of a RESTful web service built in Go for Assignment 2 of PROG2005. It enables clients to configure and retrieve dynamically populated dashboards with country data, register webhooks for notifications, and monitor service status. The service uses Firestore for persistent storage, integrates with external APIs (for country, weather, and currency data), and includes caching with periodic purging of cached data.
@@ -37,7 +39,7 @@ The Countries Dashboard Service allows users to:
   Combine data from external APIs (REST Countries, Open Meteo, Currency API) based on a configuration, presenting the enriched dashboard.
 
 - **Manage Notifications via Webhooks**  
-  Register, update, retrieve, and delete webhooks that trigger notifications on events (REGISTER, CHANGE, DELETE, INVOKE).
+  Register, update, retrieve, and delete webhooks that trigger notifications on events (REGISTER, CHANGE, DELETE, INVOKE, CACHE_HIT, CACHE_PURGE).
 
 - **Monitor Service Status**  
   Check the health of external APIs, view the number of registered webhooks, and monitor service uptime.
@@ -592,6 +594,8 @@ The system supports several key events for webhook invocation:
 - **CHANGE:** Triggered when an existing dashboard configuration is updated.
 - **DELETE:** Triggered when a dashboard configuration is deleted.
 - **INVOKE:** Triggered when a populated dashboard is retrieved by a client.
+- **CACHE_HIT:** Triggered when a dashboard request gets a cache hit for data
+- **CACHE_PURGE:** Triggered when cache is purged
 
 ### How It Works
 
