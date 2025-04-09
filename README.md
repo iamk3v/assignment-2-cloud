@@ -2,20 +2,26 @@
 
 This project is an implementation of a RESTful web service built in Go for Assignment 2 of PROG2005. It enables clients to configure and retrieve dynamically populated dashboards with country data, register webhooks for notifications, and monitor service status. The service uses Firestore for persistent storage, integrates with external APIs (for country, weather, and currency data), and includes caching with periodic purging of cached data.
 
-## Contributors
+## Workload and Communication
+In this project we have distributed the workload evenly, and worked across files together as a team, to great success.
+We chose to use a designated Discord server for ensuring effective and useful communication.
+
+### Contributors
 - Marius: Registrations, Testing and Stub
 - Mathias: Notifications, Firebase and Testing
 - Sebastian: Dashboard & Status
-- Johannes: Caching, Purging and Clients
+- Johannes: Caching, Webhooks and Clients
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
+- [Advanced Features](#advanced-features)
 - [Deployment](#deployment)
 - [Setup & Installation](#setup--installation)
 - [Running the Application](#run-the-application)
 - [API Endpoints](#api-endpoints)
+- [Webhook Invocation](#webhook-invocation)
 - [Caching and Purging](#caching-and-purging)
 - [Testing](#testing)
 
@@ -54,12 +60,13 @@ The Countries Dashboard Service allows users to:
 - **Testing:**  
   Comprehensive endpoint tests using Go’s `httptest` package.
 
-### Additional Features
+## Advanced Features
 
-- **Purging of Cached Data**
 - **`PATCH` method on `/notifications/` and `/registrations/`**
 - **`HEAD` method on `/notifications/` and `/registrations/`**
-- **Timezone Information in any time representation**
+- **Purging of Cached Data**
+- **Timezone Information in any time representation:**
+The use of `time.Now().Local().String()` to represent time.
 
 ## Deployment
 The service is hosted on NTNUs Openstack instance [here](http://10.212.170.198:8080)   
@@ -560,6 +567,61 @@ Path: /dashboard/v1/status/
       "version": "v1",
       "uptime": "0d:02h:33m:38s"
     }
+
+## Webhook Invocation
+
+The webhook invocation mechanism is the backbone of our service’s event notification system. While the Notifications API provides endpoints to manage webhook subscriptions (i.e., to register, update, retrieve, or delete webhook URLs), the invocation mechanism is responsible for automatically sending notifications to those URLs when specific events occur within the system.
+
+### Purpose
+- **Real-Time Alerts:** Notify external systems immediately when an event occurs.
+- **Loose Coupling:** Allow external systems to react to changes without polling the API.
+
+### Supported Events
+
+The system supports several key events for webhook invocation:
+
+- **REGISTER:** Triggered when a new dashboard configuration is successfully registered.
+- **CHANGE:** Triggered when an existing dashboard configuration is updated.
+- **DELETE:** Triggered when a dashboard configuration is deleted.
+- **INVOKE:** Triggered when a populated dashboard is retrieved by a client.
+
+### How It Works
+
+1. **Event Trigger:**  
+   When an event happens, for example a new registration or dashboard retrieval, the relevant handler calls `TriggerWebhooks` with the event type and, if possible, the country code.
+
+
+2. **Filtering & Payload Construction:**  
+   `TriggerWebhooks` fetches all registered webhooks, filters them by event type (and country if specified), and builds a JSON payload with the webhook ID, event type, country, and timestamp.
+
+
+3. **Asynchronous Delivery:**  
+   The payload is sent via an HTTP POST request in a separate goroutine, ensuring that the service remains responsive even if some webhooks are slow or unreachable.
+
+   
+### Example Payload
+
+For an **INVOKE** event:
+```json
+{
+  "id": "OIdksUDwveiwe",
+  "country": "NO",
+  "event": "INVOKE",
+  "time": "2025-04-09T14:21:25+02:00"
+}
+```
+
+For a **REGISTER** event:
+```json
+{
+  "id": "OIdksUDwveiwe",
+  "country": "NO",
+  "event": "REGISTER",
+  "time": "2025-04-09T14:21:25+02:00"
+}
+```
+-   **NOTE:** Payload structure is identical, only the event field differs. This uniform payload structure ensures simplicity and consistency across different types of events.
+
 
 ## Caching and Purging
 
