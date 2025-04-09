@@ -73,11 +73,13 @@ func handleStatusGetRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// sends a get request to the URL checking for a response
-func checkAPI(apiurl string) int {
-	resp, err := http.Get(apiurl)
+/*
+checkAPI sends a get request to the URL checking for a response
+*/
+func checkAPI(apiUrl string) int {
+	resp, err := http.Get(apiUrl)
 	if err != nil {
-		fmt.Println("error checking apiURL " + apiurl + ": " + err.Error())
+		fmt.Println("error checking apiURL " + apiUrl + ": " + err.Error())
 		return 0
 	}
 	defer resp.Body.Close()

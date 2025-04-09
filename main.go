@@ -11,6 +11,9 @@ import (
 	"os"
 )
 
+/*
+main The main function of the service which starts it up and routes endpoint requests to corresponding handlers
+*/
 func main() {
 
 	//start uptime timer
@@ -46,6 +49,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	// Close the client when service shuts down
 	defer func() {
 		errClose := database.Client.Close()
 		if errClose != nil {

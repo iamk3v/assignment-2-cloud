@@ -1,5 +1,6 @@
 package config
 
+// The start url for the service
 const START_URL = "/dashboard/" + VERSION
 
 // API URLs

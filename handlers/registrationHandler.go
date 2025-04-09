@@ -61,6 +61,9 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+handleRegGetOneRequest Gets one registration from the dashboards database based on ID
+*/
 func handleRegGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
 	rawContent, err := database.GetOneRegistration(id)
 	if err != nil {
@@ -87,6 +90,9 @@ func handleRegGetOneRequest(w http.ResponseWriter, r *http.Request, id string) {
 	}
 }
 
+/*
+handleRegGetAllRequest Gets all registrations from the dashboards database
+*/
 func handleRegGetAllRequest(w http.ResponseWriter, r *http.Request) {
 	// If no ID was provided, get all
 	rawContent, err := database.GetAllRegistrations()
@@ -115,6 +121,9 @@ func handleRegGetAllRequest(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*
+handleRegPostRequest Adds a new registration to the dashboards database
+*/
 func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Read the body
@@ -173,6 +182,9 @@ func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+handleRegPutRequest Overwrites an existing registration in the dashboard based on provided ID
+*/
 func handleRegPutRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// If an ID was not provided
 	if id == "" {
@@ -224,6 +236,9 @@ func handleRegPutRequest(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+/*
+handleRegDeleteRequest Deletes an existing registration from the dashboard database based on ID
+*/
 func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// If an ID was not provided
 	if id == "" {
@@ -239,17 +254,22 @@ func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
+	// Try to delete
 	err = database.DeleteRegistration(id)
 	if err != nil {
 		http.Error(w, "There was an error trying to delete that dashboard..", http.StatusInternalServerError)
 		return
 	}
 
+	// Trigger webhook for delete event
 	services.TriggerWebhooks("DELETE", existingReg.IsoCode)
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
+/*
+handleRegPatchRequest Modifies only provided fields in an existing registration in the dashboards database
+*/
 func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	// If an ID was not provided
 	if id == "" {
@@ -392,6 +412,9 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+/*
+handleRegHeadRequest Provides only the headers for a registration or all registrations in the dashboard database
+*/
 func handleRegHeadRequest(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" { // No ID provided
 		// Get all registrations

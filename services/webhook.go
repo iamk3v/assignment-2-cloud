@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -23,10 +24,16 @@ func TriggerWebhooks(event string, country string) {
 		return
 	}
 
+	event = strings.ToUpper(event)
+	country = strings.ToUpper(country)
+
 	// Looping through all webhooks
 	for _, hook := range hooks {
+		hookEvent := strings.ToUpper(hook.Event)
+		hookCountry := strings.ToUpper(hook.Country)
+		log.Println(event, hookEvent, hookCountry, country)
 		// Check if the webhook event matches
-		if hook.Event == event && (hook.Country == "" || hook.Country == country) {
+		if hookEvent == event && (hookCountry == "" || hookCountry == country) {
 			// Create the payload for the webhook invocation plus a time stamp
 			payload := utils.WebhookInvocation{
 				ID:      hook.ID,
@@ -41,7 +48,6 @@ func TriggerWebhooks(event string, country string) {
 				log.Println("Error marshalling webhook payload: " + err.Error())
 				continue
 			}
-
 			// Trigger the webhooks asynchronously
 			go func(url string, data []byte) {
 				// Send a post request with the webhook URL
@@ -50,7 +56,6 @@ func TriggerWebhooks(event string, country string) {
 					log.Println("Error triggering webhook at: " + url + ": " + err.Error())
 					return
 				}
-
 				// Log it with the HTTP status code
 				defer resp.Body.Close()
 				log.Println("Webhook triggered at: " + url + ", status code: " + strconv.Itoa(resp.StatusCode))
