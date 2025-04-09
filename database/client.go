@@ -29,7 +29,7 @@ initDatabase initializes the firebase app, client and content, returns the clien
 func initDatabase() (*firestore.Client, error) {
 	Ctx = context.Background()
 	// get the credentials from file
-	sa := option.WithCredentialsFile("config/service-account.json")
+	sa := option.WithCredentialsFile("../config/service-account.json")
 	dbConfig := &firebase.Config{
 		ProjectID: config.PROJECT_ID,
 	}
