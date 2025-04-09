@@ -125,7 +125,7 @@ func PurgeExpiredCacheEntries(ctx context.Context) error {
 	}
 	fmt.Printf("Purged %d cache entries\n", purgeCounter)
 	// Trigger webhook on cache purge
-	if webhookTrigger != nil {
+	if webhookTrigger != nil && purgeCounter > 0 {
 		webhookTrigger.TriggerWebhooks("CACHE_PURGE", "")
 	}
 	return nil
