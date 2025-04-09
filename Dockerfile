@@ -21,7 +21,6 @@ COPY ./utils /go/utils
 COPY ./html /go/html
 COPY ./main.go /go/main.go
 
-
 # Compile binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o server
 
