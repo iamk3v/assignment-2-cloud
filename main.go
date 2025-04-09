@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 /*
@@ -35,6 +36,22 @@ func main() {
 
 	//Handle all 404 if no match found
 	router.HandleFunc("/", handlers.NotFoundHandler)
+
+	// STARTING background routine for purging expired cache - Checks every hour
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+
+		for {
+			<-ticker.C
+			err := database.PurgeExpiredCacheEntries(database.Ctx)
+			if err != nil {
+				log.Printf("Error purging expired cache entries: %v\n", err)
+			} else {
+				log.Println("Expired cache entries purged successfully.")
+			}
+		}
+	}()
 
 	// Define port
 	PORT := "8080"

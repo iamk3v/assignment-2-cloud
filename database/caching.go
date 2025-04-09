@@ -1,9 +1,12 @@
 package database
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"google.golang.org/api/iterator"
 )
 
 /*
@@ -82,4 +85,35 @@ func GetCachedData(key string, dest interface{}) error {
 	return json.Unmarshal([]byte(entry.Data), dest)
 }
 
-// Cache purging
+/*
+PurgeExpiredCacheEntries Queries firestore for cache entries that have expired and deletes them
+*/
+func PurgeExpiredCacheEntries(ctx context.Context) error {
+	// Calculate expiration time
+	expirationThreshold := time.Now().Add(-CacheExpiration)
+
+	// Query the firestore collection for documents with expired timestamps
+	iter := Client.Collection(cacheCollection).Where("timestamp", "<", expirationThreshold).Documents(ctx)
+	defer iter.Stop()
+
+	var purgeCounter int
+
+	// Iterate over the result
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("there was an error iterating cache documents: %w", err)
+		}
+		// Delete expired cache documents
+		_, err = doc.Ref.Delete(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to delete cache entry %s: %w", doc.Ref.ID, err)
+		}
+		purgeCounter++
+	}
+	fmt.Printf("Purged %d cache entries\n", purgeCounter)
+	return nil
+}
