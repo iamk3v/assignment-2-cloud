@@ -80,6 +80,7 @@ var GetCurrencyRates = func(currency []string, countryCode string) (*utils.Curre
 			return nil, fmt.Errorf("currency code %s not found in API response", code)
 		}
 
+		//appends the currencycodes and rates
 		fullCurrencyData = append(fullCurrencyData, utils.CurrencyResponse{
 			Code: code,
 			Rate: rate,

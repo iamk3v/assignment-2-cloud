@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+/*
+sets a predefined database pull
+*/
 func mockGetOneRegistration(id string) (*utils.Dashboard, error) {
 	return &utils.Dashboard{
 		Id:      id,
@@ -29,6 +32,9 @@ func mockGetOneRegistration(id string) (*utils.Dashboard, error) {
 	}, nil
 }
 
+/*
+sets predefined country data
+*/
 func mockGetCountryData(country, iso string) (*utils.CountryResponse, error) {
 	return &utils.CountryResponse{
 
@@ -48,6 +54,9 @@ func mockGetCountryData(country, iso string) (*utils.CountryResponse, error) {
 	}, nil
 }
 
+/*
+sets predefined weather data
+*/
 func mockGetWeatherDate(lat float64, lon float64) (*utils.OpenMeteoresponse, error) {
 	return &utils.OpenMeteoresponse{
 		Daily: struct {
@@ -60,6 +69,9 @@ func mockGetWeatherDate(lat float64, lon float64) (*utils.OpenMeteoresponse, err
 	}, nil
 }
 
+/*
+sets predefined weather data
+*/
 func mockGetCurrencyRates(targets []string, base string) (*utils.CurrencyAPIResult, error) {
 	return &utils.CurrencyAPIResult{
 		BaseCode:          base,
@@ -72,7 +84,9 @@ func mockGetCurrencyRates(targets []string, base string) (*utils.CurrencyAPIResu
 	}, nil
 }
 
-// TestDashboardHandler tests the populated dashboard functionality
+/*
+TestDashboardHandler tests the populated dashboard functionality
+*/
 func TestDashboardHandler(t *testing.T) {
 	// Patch actual functions with mocks
 	database.GetOneRegistration = mockGetOneRegistration
@@ -101,11 +115,11 @@ func TestDashboardHandler(t *testing.T) {
 
 	features := body["features"].(map[string]interface{})
 
-	capital := features["capital"].([]interface{}) // JSON decoding makes this a []interface{}
+	capital := features["capital"].([]interface{})
 	if capital[0] != "Oslo" {
 		t.Errorf("Expected first capital Oslo, got %v", capital[0])
 	}
-	
+
 	if features["temperature"] != 3.0 {
 		t.Errorf("Expected mean temperature 3.0, got %v", features["temperature"])
 	}

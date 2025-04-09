@@ -75,11 +75,13 @@ Average returns the average of a slice of float64 numbers
 */
 func Average(numbers []float64) float64 {
 	sum := 0.0
+	//adds up the numbers
 	for _, num := range numbers {
 		sum += num
 	}
 
 	var mean float64
+	//finds the mean number
 	if len(numbers) > 0 {
 		mean = sum / float64(len(numbers))
 	}

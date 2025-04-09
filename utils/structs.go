@@ -69,11 +69,6 @@ type OpenMeteoresponse struct {
 	}
 }
 
-type Coordinates struct {
-	Latitude  string `json:"latitude"`
-	Longitude string `json:"longitude"`
-}
-
 type CurrencyAPIResult struct {
 	BaseCode          string
 	TimeLastUpdateUTC string
