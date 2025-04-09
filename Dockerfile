@@ -18,6 +18,7 @@ COPY ./database /go/database
 COPY ./handlers /go/handlers
 COPY ./services /go/services
 COPY ./utils /go/utils
+COPY ./html /go/html
 COPY ./main.go /go/main.go
 
 
