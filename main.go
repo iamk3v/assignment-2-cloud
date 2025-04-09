@@ -21,21 +21,12 @@ func main() {
 	utils.StartTime()
 	log.Println("Uptime timer started:", utils.GetTime())
 
-	// Create a new router
-	router := http.NewServeMux()
-
-	// Routes
-	router.HandleFunc(config.START_URL+"/registrations/", handlers.RegistrationHandler)
-	router.HandleFunc(config.START_URL+"/registrations", handlers.RegistrationHandler)
-	router.HandleFunc(config.START_URL+"/dashboards/", handlers.DashboardHandler)
-	router.HandleFunc(config.START_URL+"/dashboards", handlers.DashboardHandler)
-	router.HandleFunc(config.START_URL+"/notifications/", handlers.NotificationHandler)
-	router.HandleFunc(config.START_URL+"/notifications", handlers.NotificationHandler)
-	router.HandleFunc(config.START_URL+"/status/", handlers.StatusHandler)
-	router.HandleFunc(config.START_URL+"/status", handlers.StatusHandler)
-
-	//Handle all 404 if no match found
-	router.HandleFunc("/", handlers.NotFoundHandler)
+	// Purge cached entries at startup
+	if err := database.PurgeExpiredCacheEntries(database.Ctx); err != nil {
+		log.Printf("Error purging expired cache entries at startup: %v\n", err)
+	} else {
+		log.Println("Successfully purged expired cache entries at startup")
+	}
 
 	// STARTING background routine for purging expired cache - Checks every hour
 	go func() {
@@ -52,6 +43,22 @@ func main() {
 			}
 		}
 	}()
+
+	// Create a new router
+	router := http.NewServeMux()
+
+	// Routes
+	router.HandleFunc(config.START_URL+"/registrations/", handlers.RegistrationHandler)
+	router.HandleFunc(config.START_URL+"/registrations", handlers.RegistrationHandler)
+	router.HandleFunc(config.START_URL+"/dashboards/", handlers.DashboardHandler)
+	router.HandleFunc(config.START_URL+"/dashboards", handlers.DashboardHandler)
+	router.HandleFunc(config.START_URL+"/notifications/", handlers.NotificationHandler)
+	router.HandleFunc(config.START_URL+"/notifications", handlers.NotificationHandler)
+	router.HandleFunc(config.START_URL+"/status/", handlers.StatusHandler)
+	router.HandleFunc(config.START_URL+"/status", handlers.StatusHandler)
+
+	//Handle all 404 if no match found
+	router.HandleFunc("/", handlers.NotFoundHandler)
 
 	// Define port
 	PORT := "8080"

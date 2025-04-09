@@ -3,6 +3,7 @@ package clients
 import (
 	"assignment-2/config"
 	"assignment-2/database"
+	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"errors"
@@ -36,10 +37,16 @@ func GetCountryData(name string, isoCode string) (*utils.CountryResponse, error)
 	// Tries to get a cache hit using the cache key
 	if err := database.GetCachedData(cacheKey, &countryData); err == nil {
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
+		// Trigger webhook notification for the cache hit
+		if isoCode != "" {
+			services.TriggerWebhooks("CACHE_HIT", isoCode)
+		} else {
+			services.TriggerWebhooks("CACHE_HIT", name)
+		}
 		// Returns the first entry if successful
 		return &countryData[0], nil
 	}
-	fmt.Println("Cache miss for key: %s\n", cacheKey)
+	fmt.Printf("Cache miss for key: %s\n", cacheKey)
 
 	// Calls the API
 	resp, err := http.Get(url)
@@ -56,8 +63,7 @@ func GetCountryData(name string, isoCode string) (*utils.CountryResponse, error)
 	// Read API response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Error: Failed to read API response: %w", err)
-
+		return nil, fmt.Errorf("error: Failed to read API response: %w", err)
 	}
 
 	// Unmarshal the response

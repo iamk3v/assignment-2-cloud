@@ -3,6 +3,7 @@ package clients
 import (
 	"assignment-2/config"
 	"assignment-2/database"
+	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -22,6 +23,8 @@ func GetCurrencyRates(curency []string, countrycode string) (*utils.CurrencyAPIR
 	// Retrieve cached data
 	if err := database.GetCachedData(cacheKey, &result); err == nil {
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
+		// Trigger webhook event for cache hit
+		services.TriggerWebhooks("CACHE_HIT", countrycode)
 		return &result, nil
 	}
 	fmt.Printf("Cache miss for key: %s", cacheKey)

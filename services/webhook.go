@@ -17,15 +17,16 @@ TriggerWebhooks Checks for registered webhooks that match the given event countr
 a post notification
 */
 func TriggerWebhooks(event string, country string) {
+	// Convert the event to upper, making the match case-insensitive
+	event = strings.ToUpper(event)
+	country = strings.ToUpper(country)
+
 	// Retrieve all webhooks from the database
 	hooks, err := database.GetAllWebhooks()
 	if err != nil {
 		log.Println("Error retrieving webhooks: " + err.Error())
 		return
 	}
-
-	event = strings.ToUpper(event)
-	country = strings.ToUpper(country)
 
 	// Looping through all webhooks
 	for _, hook := range hooks {

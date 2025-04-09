@@ -3,6 +3,7 @@ package clients
 import (
 	"assignment-2/config"
 	"assignment-2/database"
+	"assignment-2/services"
 	"assignment-2/utils"
 	"encoding/json"
 	"fmt"
@@ -23,6 +24,8 @@ func GetWeatherDate(latitude float64, longitude float64) (*utils.OpenMeteorespon
 	var weatherData utils.OpenMeteoresponse
 	if err := database.GetCachedData(cacheKey, &weatherData); err == nil {
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
+		// Trigger webhook event for cache hit
+		services.TriggerWebhooks("CACHE_HIT", fmt.Sprintf("LAT:%f, LONG:%f", latitude, longitude))
 		return &weatherData, nil
 	}
 	fmt.Printf("Cache miss for key: %s\n", cacheKey)
