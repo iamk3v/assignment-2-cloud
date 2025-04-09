@@ -7,9 +7,9 @@ In this project we have distributed the workload evenly, and worked across files
 We chose to use a designated Discord server for ensuring effective and useful communication.
 
 ### Contributors
-- Marius: Registrations, Testing and Stub
+- Marius: Registrations, Testing and Docker
 - Mathias: Notifications, Firebase and Testing
-- Sebastian: Dashboard & Status
+- Sebastian: Dashboard, Status and Testing
 - Johannes: Caching, Webhooks and Clients
 
 ## Table of Contents
@@ -156,11 +156,12 @@ Content type: application/json
   }
   
 - **Response:**
-    ```json
-  {
-  "id": "v9KIhCCocXgSPwLg8UWN",
-  "lastChange": "2025-04-08 12:37:09.4366611 +0200 CEST"
-  }
+  - Content type: `application/json`
+      ```json
+    {
+    "id": "v9KIhCCocXgSPwLg8UWN",
+    "lastChange": "2025-04-08 12:37:09.4366611 +0200 CEST"
+    }
 #### - Request (GET)
 ```
 Method: GET
@@ -176,26 +177,27 @@ Content type: application/json
 
 
 - **Response:**
-    ```json 
-  {
-    "id": "v9KIhCCocXgSPwLg8UWN",
-    "country": "Norway",
-    "isoCode": "NO",
-    "features": {
-        "temperature": true,
-        "precipitation": true,
-        "capital": true,
-        "coordinates": true,
-        "population": true,
-        "area": false,
-        "targetCurrencies": [
-            "EUR",
-            "USD",
-            "SEK"
-        ]
-    },
-    "lastChange": "2025-04-08 12:37:09.4366611 +0200 CEST"
-  }
+  - Content type: `application/json`
+      ```json 
+    {
+      "id": "v9KIhCCocXgSPwLg8UWN",
+      "country": "Norway",
+      "isoCode": "NO",
+      "features": {
+          "temperature": true,
+          "precipitation": true,
+          "capital": true,
+          "coordinates": true,
+          "population": true,
+          "area": false,
+          "targetCurrencies": [
+              "EUR",
+              "USD",
+              "SEK"
+          ]
+      },
+      "lastChange": "2025-04-08 12:37:09.4366611 +0200 CEST"
+    }
 
 #### - Request (GET)
 ```
@@ -211,43 +213,44 @@ Path: /dashboard/v1/registrations/
 
 
 - **Response:**
-    ```json 
-  [
-    {
-        "id": "Dq8PjJfuPVQT8YEq8Ms4",
-        "country": "Norway",
-        "isoCode": "NO",
-        "features": {
-            "temperature": true,
-            "precipitation": true,
-            "capital": true,
-            "coordinates": true,
-            "population": true,
-            "area": false,
-            "targetCurrencies": [
-                "EUR",
-                "USD",
-                "SEK"
-            ]
-        },
-        "lastChange": "2025-04-08 12:30:46.9248986 +0200 CEST"
-    },
-    {
-        "id": "Gzt5covH1vt8y3QVtnan",
-        "country": "NO",
-        "isoCode": "",
-        "features": {
-            "temperature": false,
-            "precipitation": false,
-            "capital": false,
-            "coordinates": false,
-            "population": false,
-            "area": false,
-            "targetCurrencies": null
-        },
-        "lastChange": "2025-04-08 12:29:57.1243472 +0200 CEST"
-    },
-    ...
+  - Content type: `application/json`
+      ```json 
+    [
+      {
+          "id": "Dq8PjJfuPVQT8YEq8Ms4",
+          "country": "Norway",
+          "isoCode": "NO",
+          "features": {
+              "temperature": true,
+              "precipitation": true,
+              "capital": true,
+              "coordinates": true,
+              "population": true,
+              "area": false,
+              "targetCurrencies": [
+                  "EUR",
+                  "USD",
+                  "SEK"
+              ]
+          },
+          "lastChange": "2025-04-08 12:30:46.9248986 +0200 CEST"
+      },
+      {
+          "id": "Gzt5covH1vt8y3QVtnan",
+          "country": "NO",
+          "isoCode": "",
+          "features": {
+              "temperature": false,
+              "precipitation": false,
+              "capital": false,
+              "coordinates": false,
+              "population": false,
+              "area": false,
+              "targetCurrencies": null
+          },
+          "lastChange": "2025-04-08 12:29:57.1243472 +0200 CEST"
+      },
+      ...
 
 
 
@@ -255,6 +258,7 @@ Path: /dashboard/v1/registrations/
 ```
 Method: PUT
 Path: /dashboard/v1/registrations/{id}
+Content type: application/json
 ```
 - **Description:**  
   - Replaces the entire dashboard configuration identified by the provided ID and updates lastChange timestamp. 
@@ -279,7 +283,7 @@ Path: /dashboard/v1/registrations/{id}
 
 
 - **Response:**
-  - Returns 204 No Content
+  - Status code: 204 No Content
   - Body: empty
 
 #### - Request (PATCH)
@@ -301,7 +305,7 @@ Content type: application/json
   }
 
 - **Response:**
-    - Returns 204 No Content
+    - Status code: 204 No Content
     - Body: empty
 
 #### - Request (HEAD)
@@ -320,7 +324,7 @@ Path: /dashboard/v1/registrations/{id}
 
 
 - **Response:**
-  - Returns 204 No Content
+  - Status code: 204 No Content
 
 #### - Request (DELETE)
 ```
@@ -336,7 +340,7 @@ Path: /dashboard/v1/registrations/{id}
 
 
 - **Response:**
-    - Returns 204 No Content
+    - Status code: 204 No Content
     - Body: empty
 
 
@@ -357,45 +361,46 @@ Path: /dashboard/v1/dashboards/{id}
 
 
 - **Response:**
-    ```json
-  {
-    "country": "Norway",
-    "features": {
-        "area": 323802,
-        "capital": [
-            "Oslo"
-        ],
-        "coordinates": {
-            "latitude": 62,
-            "longitude": 10
-        },
-        "population": 5379475,
-        "precipitation": 10.428571428571429,
-        "targetCurrencies": [
-            {
-                "base_code": "NOK",
-                "time_last_update_utc": "Mon, 07 Apr 2025 00:02:31 +0000",
-                "time_next_update_utc": "Tue, 08 Apr 2025 00:23:41 +0000",
-                "rates": [
-                    {
-                        "code": "EUR",
-                        "rate": 0.084486
-                    },
-                    {
-                        "code": "USD",
-                        "rate": 0.092858
-                    },
-                    {
-                        "code": "SEK",
-                        "rate": 0.929191
-                    }
-                ]
-            }
-        ],
-        "temperature": 2.457142857142857
-    },
-    "isoCode": "NO",
-    "lastRetrieval": "2025-04-08T13:33:40+02:00"
+  - Content type: `application/json`
+      ```json
+    {
+      "country": "Norway",
+      "features": {
+          "area": 323802,
+          "capital": [
+              "Oslo"
+          ],
+          "coordinates": {
+              "latitude": 62,
+              "longitude": 10
+          },
+          "population": 5379475,
+          "precipitation": 10.428571428571429,
+          "targetCurrencies": [
+              {
+                  "base_code": "NOK",
+                  "time_last_update_utc": "Mon, 07 Apr 2025 00:02:31 +0000",
+                  "time_next_update_utc": "Tue, 08 Apr 2025 00:23:41 +0000",
+                  "rates": [
+                      {
+                          "code": "EUR",
+                          "rate": 0.084486
+                      },
+                      {
+                          "code": "USD",
+                          "rate": 0.092858
+                      },
+                      {
+                          "code": "SEK",
+                          "rate": 0.929191
+                      }
+                  ]
+              }
+          ],
+          "temperature": 2.457142857142857
+      },
+      "isoCode": "NO",
+      "lastRetrieval": "2025-04-08T13:33:40+02:00"
 }
 
 ### Endpoint '/Notifications'
@@ -421,12 +426,13 @@ Content type: application/json
   }
 
 - **Response:**
+  - Content type: `application/json`
   - Status code: 201 Created
-  ```json
-    {
-      "httpCat": "https://http.cat/201",
-      "id": "d7i0baIRFVRS6RB5vCJZ"
-    }
+    ```json
+      {
+        "httpCat": "https://http.cat/201",
+        "id": "d7i0baIRFVRS6RB5vCJZ"
+      }
 
 #### - Request (GET)
 ```
@@ -442,13 +448,14 @@ Path: /dashboard/v1/notifications/{id}
 
 
 - **Response:**
-    ```json
-  {
-    "id": "NDDWIy5TM6kaaAYvIN6E",
-    "url": "https://localhost:8080/client/",
-    "country": "NO",
-    "event": "INVOKE"
-  }
+  - Content type: `application/json`
+      ```json
+    {
+      "id": "NDDWIy5TM6kaaAYvIN6E",
+      "url": "https://localhost:8080/client/",
+      "country": "NO",
+      "event": "INVOKE"
+    }
 
 #### - Request (GET)
 ```
@@ -464,22 +471,23 @@ Path: /dashboard/v1/notifications/
 
 
 - **Response:**
-    ```json
-  [
-      {
-        "id": "0MwxWRziYlRIANVbmcdh",
-        "url": "https://example.com/webhook",
-        "country": "NO",
-        "event": "REGISTER"
-      },
-      {
-        "id": "7DjSRD7FXUjRXVATFGtL",
-        "url": "test.com",
-        "country": "NO",
-        "event": "REGISTER"
-      },
-      ...
-  ]
+  - Content type: `application/json`
+      ```json
+    [
+        {
+          "id": "0MwxWRziYlRIANVbmcdh",
+          "url": "https://example.com/webhook",
+          "country": "NO",
+          "event": "REGISTER"
+        },
+        {
+          "id": "7DjSRD7FXUjRXVATFGtL",
+          "url": "test.com",
+          "country": "NO",
+          "event": "REGISTER"
+        },
+        ...
+    ]
 #### - Request (PATCH)
 ```
 Method: PATCH
@@ -498,7 +506,7 @@ Content type: application/json
   }
 
 - **Response:**
-  - Returns 204 No Content
+  - Status code: 204 No Content
   - Body: empty
 
 #### - Request (HEAD)
@@ -517,7 +525,7 @@ Path: /dashboard/v1/notifications/{id}
 
 
 - **Response:**
-  - Returns 204 No Content
+  - Status code: 204 No Content
 
 #### - Request (DELETE)
 ```
@@ -533,7 +541,7 @@ Path: /dashboard/v1/notifications/{id}
 
 
 - **Response:**
-  - Returns 204 No Content
+  - Status code: 204 No Content
   - Body: empty
 
 ### Endpoint '/Status'
@@ -553,7 +561,7 @@ Path: /dashboard/v1/status/
 
 
 - **Response:** 
-  - Content type: application/json
+  - Content type: `application/json`
   - Status code: 200 if OK
 
       ```json
