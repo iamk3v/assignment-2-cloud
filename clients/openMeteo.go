@@ -14,7 +14,7 @@ import (
 /*
 GetWeatherDate calls the external API, OpenMeteo if the data is not available from cache
 */
-func GetWeatherDate(latitude float64, longitude float64) (*utils.OpenMeteoresponse, error) {
+var GetWeatherDate = func(latitude float64, longitude float64) (*utils.OpenMeteoresponse, error) {
 
 	// Defines a key for cache based on lat and long
 	cacheKey := fmt.Sprintf("Openmeteo_%f_%f", latitude, longitude)
@@ -24,7 +24,9 @@ func GetWeatherDate(latitude float64, longitude float64) (*utils.OpenMeteorespon
 	if err := database.GetCachedData(cacheKey, &weatherData); err == nil {
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
 		// Trigger webhook event for cache hit
-		webhookTrigger.TriggerWebhooks("CACHE_HIT", fmt.Sprintf("LAT:%f, LONG:%f", latitude, longitude))
+		if webhookTrigger != nil {
+			webhookTrigger.TriggerWebhooks("CACHE_HIT", fmt.Sprintf("LAT:%f, LONG:%f", latitude, longitude))
+		}
 		return &weatherData, nil
 	}
 	fmt.Printf("Cache miss for key: %s\n", cacheKey)

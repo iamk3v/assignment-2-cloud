@@ -23,7 +23,7 @@ func SetClientWebhookTrigger(trigger WebhookTrigger) {
 /*
 GetCurrencyRates Retrieves the currency API result from cache or the external API
 */
-func GetCurrencyRates(currency []string, countryCode string) (*utils.CurrencyAPIResult, error) {
+var GetCurrencyRates = func(currency []string, countryCode string) (*utils.CurrencyAPIResult, error) {
 	// Create a unique cache key via the country code
 	cacheKey := fmt.Sprintf("currency_%s", countryCode)
 
@@ -33,7 +33,9 @@ func GetCurrencyRates(currency []string, countryCode string) (*utils.CurrencyAPI
 	if err := database.GetCachedData(cacheKey, &result); err == nil {
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
 		// Trigger webhook event for cache hit
-		webhookTrigger.TriggerWebhooks("CACHE_HIT", countryCode)
+		if webhookTrigger != nil {
+			webhookTrigger.TriggerWebhooks("CACHE_HIT", countryCode)
+		}
 		return &result, nil
 	}
 	fmt.Printf("Cache miss for key: %s", cacheKey)

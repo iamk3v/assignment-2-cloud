@@ -176,7 +176,9 @@ func handleDashGetRequest(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	// Trigger webhooks asynchronously
-	go webhookTrigger.TriggerWebhooks("INVOKE", isoCode)
+	if webhookTrigger != nil {
+		go webhookTrigger.TriggerWebhooks("INVOKE", isoCode)
+	}
 
 	// Send the final response
 	w.Header().Set("Content-Type", "application/json")

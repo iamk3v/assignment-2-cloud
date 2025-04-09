@@ -15,7 +15,7 @@ import (
 GetCountryData Retrieves data for countries by country name or ISO code.
 It attempts to load the data from cache. If it fails the external api is called.
 */
-func GetCountryData(name string, isoCode string) (*utils.CountryResponse, error) {
+var GetCountryData = func(name string, isoCode string) (*utils.CountryResponse, error) {
 	var url string
 	var cacheKey string
 
@@ -37,10 +37,12 @@ func GetCountryData(name string, isoCode string) (*utils.CountryResponse, error)
 	if err := database.GetCachedData(cacheKey, &countryData); err == nil {
 		fmt.Printf("Cache hit for key: %s\n", cacheKey)
 		// Trigger webhook notification for the cache hit
-		if isoCode != "" {
-			webhookTrigger.TriggerWebhooks("CACHE_HIT", isoCode)
-		} else {
-			webhookTrigger.TriggerWebhooks("CACHE_HIT", name)
+		if webhookTrigger != nil {
+			if isoCode != "" {
+				webhookTrigger.TriggerWebhooks("CACHE_HIT", isoCode)
+			} else {
+				webhookTrigger.TriggerWebhooks("CACHE_HIT", name)
+			}
 		}
 		// Returns the first entry if successful
 		return &countryData[0], nil

@@ -159,11 +159,14 @@ func handleRegPostRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve the new registration and trigger webhooks for REGISTER
-	newReg, err := database.GetOneRegistration(id)
-	if err != nil {
-		log.Println("Error retrieving newly added registration: ", err)
-	} else if newReg != nil {
-		webhookTrigger.TriggerWebhooks("REGISTER", newReg.IsoCode)
+	if webhookTrigger != nil {
+		newReg, err := database.GetOneRegistration(id)
+		if err != nil {
+			log.Println("Error retrieving newly added registration: ", err)
+		} else if newReg != nil {
+			webhookTrigger.TriggerWebhooks("REGISTER", newReg.IsoCode)
+
+		}
 	}
 
 	// Create the response struct
@@ -228,7 +231,9 @@ func handleRegPutRequest(w http.ResponseWriter, r *http.Request, id string) {
 	if err != nil {
 		log.Println("Error retrieving updated registration", err)
 	} else if updateReg != nil {
-		webhookTrigger.TriggerWebhooks("CHANGE", updateReg.IsoCode)
+		if webhookTrigger != nil {
+			webhookTrigger.TriggerWebhooks("CHANGE", updateReg.IsoCode)
+		}
 	}
 
 	// Return status code to indicate success
@@ -261,8 +266,9 @@ func handleRegDeleteRequest(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	// Trigger webhook for delete event
-	webhookTrigger.TriggerWebhooks("DELETE", existingReg.IsoCode)
-
+	if webhookTrigger != nil {
+		webhookTrigger.TriggerWebhooks("DELETE", existingReg.IsoCode)
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -405,8 +411,10 @@ func handleRegPatchRequest(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	webhookTrigger.TriggerWebhooks("CHANGE", updatedData.IsoCode)
-
+	// Trigger Webhook
+	if webhookTrigger != nil {
+		webhookTrigger.TriggerWebhooks("CHANGE", updatedData.IsoCode)
+	}
 	// Return status code to indicate success
 	w.WriteHeader(http.StatusNoContent)
 }

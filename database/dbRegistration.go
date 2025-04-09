@@ -53,7 +53,7 @@ func UpdateRegistration(id string, dash utils.DashboardPost) error {
 /*
 GetOneRegistration Gets a specific registration in Firestore by ID
 */
-func GetOneRegistration(id string) (*utils.Dashboard, error) {
+var GetOneRegistration = func(id string) (*utils.Dashboard, error) {
 	// Find the document with specified id
 	res := Client.Collection(config.DASHBOARD_COLLECTION).Doc(id)
 
