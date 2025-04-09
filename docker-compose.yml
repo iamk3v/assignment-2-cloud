@@ -1,0 +1,11 @@
+# Docker Compose config for defining services
+
+services:
+  go-ing-nuclear:
+    build: # Builds the image
+      context: . # Specifies current directory
+      dockerfile: Dockerfile
+    container_name: go-ing-nuclear
+    ports:
+      - "8080:8080"
+    restart: always
