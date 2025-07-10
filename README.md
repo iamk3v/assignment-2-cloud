@@ -87,7 +87,7 @@ Documentation for NTNUs Openstack can be found [here](https://www.ntnu.no/wiki/d
 ### 1. Clone the Repository
 
 ```bash
-git clone https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2025-workspace/sebasama/assignment-2.git
+git clone https://github.com/iamk3v/assignment-2-cloud.git
 ```
 ### 2. Install Dependencies
 ```bash
@@ -104,7 +104,7 @@ go mod tidy
 go run main.go
 ```
 #### Using Docker:
-> **Important!**
+> [!NOTE]
 > 
 > Make sure the firestore service credentials JSON file is present in the `config/`
 > folder before composing the image!
